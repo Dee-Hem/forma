@@ -47,10 +47,15 @@ export default function FormaTextApp() {
   const [isFocusMode, setIsFocusMode] = useState(false);
   const [isProcessingAI, setIsProcessingAI] = useState(false);
   const [fontSize, setFontSize] = useState(12);
+  const [isMounted, setIsMounted] = useState(false);
   
   const editorRef = useRef<HTMLTextAreaElement>(null);
   const previewRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   // TOC Generation
   useEffect(() => {
@@ -59,10 +64,10 @@ export default function FormaTextApp() {
 
   // MathJax Rendering
   useEffect(() => {
-    if ((window as any).MathJax) {
+    if ((window as any).MathJax && isMounted) {
       (window as any).MathJax.typesetPromise();
     }
-  }, [content, isPreviewVisible]);
+  }, [content, isPreviewVisible, isMounted]);
 
   // Auto-save logic (60 seconds)
   useEffect(() => {
@@ -127,20 +132,41 @@ export default function FormaTextApp() {
   };
 
   const handleExportPDF = () => {
-    // In a browser context, window.print is the primary engine. 
-    // We've styled the @media print to hide UI and show only the preview.
     window.print();
     toast({ title: "PDF Export triggered", description: "Your document is being prepared for export." });
   };
 
   const jumpToHeading = (text: string) => {
-    // Simple logic to scroll preview to a specific text segment
     const elements = previewRef.current?.querySelectorAll('h1, h2, h3, h4, h5, h6');
     elements?.forEach((el) => {
       if (el.textContent === text) {
         el.scrollIntoView({ behavior: 'smooth' });
       }
     });
+  };
+
+  const renderMarkdown = (text: string) => {
+    if (!isMounted) return '';
+    return text
+      .replace(/^# (.*$)/gim, '<h1 id="$1">$1</h1>')
+      .replace(/^## (.*$)/gim, '<h2 id="$1">$2</h2>')
+      .replace(/^### (.*$)/gim, '<h3 id="$1">$1</h3>')
+      .replace(/^\> (.*$)/gim, '<blockquote>$1</blockquote>')
+      .replace(/\*\*(.*)\*\*/gim, '<strong>$1</strong>')
+      .replace(/\*(.*)\*/gim, '<em>$1</em>')
+      .replace(/!\[(.*?)\]\((.*?)\)/gim, "<img alt='$1' src='$2' />")
+      .replace(/\[(.*?)\]\((.*?)\)/gim, "<a href='$2'>$1</a>")
+      .split('\n')
+      .map(line => {
+        const trimmed = line.trim();
+        if (trimmed === '') return '<br/>';
+        // Check if the line already starts with a block-level HTML tag to avoid invalid nesting
+        if (trimmed.startsWith('<h') || trimmed.startsWith('<blockquote') || trimmed.startsWith('<img') || trimmed.startsWith('<ul') || trimmed.startsWith('<ol') || trimmed.startsWith('<li')) {
+          return line;
+        }
+        return `<p>${line}</p>`;
+      })
+      .join('');
   };
 
   return (
@@ -281,19 +307,7 @@ export default function FormaTextApp() {
                   ref={previewRef}
                   className="preview-content px-12 py-16 max-w-4xl mx-auto text-black"
                   style={{ fontSize: `12pt` }}
-                  dangerouslySetInnerHTML={{ __html: content
-                    .replace(/^# (.*$)/gim, '<h1 id="$1">$1</h1>')
-                    .replace(/^## (.*$)/gim, '<h2 id="$1">$1</h2>')
-                    .replace(/^### (.*$)/gim, '<h3 id="$1">$1</h3>')
-                    .replace(/^\> (.*$)/gim, '<blockquote>$1</blockquote>')
-                    .replace(/\*\*(.*)\*\*/gim, '<strong>$1</strong>')
-                    .replace(/\*(.*)\*/gim, '<em>$1</em>')
-                    .replace(/!\[(.*?)\]\((.*?)\)/gim, "<img alt='$1' src='$2' />")
-                    .replace(/\[(.*?)\]\((.*?)\)/gim, "<a href='$2'>$1</a>")
-                    .split('\n')
-                    .map(line => line.trim() === '' ? '<br/>' : `<p>${line}</p>`)
-                    .join('')
-                  }}
+                  dangerouslySetInnerHTML={{ __html: renderMarkdown(content) }}
                 />
               </ScrollArea>
             </div>
