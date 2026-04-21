@@ -85,7 +85,7 @@ export default function FormaTextApp() {
   useEffect(() => {
     if (isMounted && (window as any).MathJax) {
       const timer = setTimeout(() => {
-        (window as any).MathJax.typesetPromise?.();
+        (window as any).MathJax.typesetPromise?.().catch((e: any) => console.error(e));
       }, 100);
       return () => clearTimeout(timer);
     }
@@ -177,7 +177,7 @@ export default function FormaTextApp() {
     lines.forEach(line => {
       const trimmed = line.trim();
       if (trimmed === '') {
-        html += '<br/>';
+        html += '<div class="h-4"></div>';
       } else if (trimmed.startsWith('# ')) {
         const hText = trimmed.slice(2);
         html += `<h1 id="${hText}">${hText}</h1>`;
