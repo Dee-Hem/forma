@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
@@ -78,8 +77,10 @@ export default function FormaTextApp() {
   }, [content]);
 
   const handleSave = useCallback(() => {
-    localStorage.setItem('formatext_document', content);
-    setLastSaved(new Date());
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('formatext_document', content);
+      setLastSaved(new Date());
+    }
   }, [content]);
 
   // AI Actions
@@ -147,26 +148,39 @@ export default function FormaTextApp() {
 
   const renderMarkdown = (text: string) => {
     if (!isMounted) return '';
-    return text
-      .replace(/^# (.*$)/gim, '<h1 id="$1">$1</h1>')
-      .replace(/^## (.*$)/gim, '<h2 id="$1">$2</h2>')
-      .replace(/^### (.*$)/gim, '<h3 id="$1">$1</h3>')
-      .replace(/^\> (.*$)/gim, '<blockquote>$1</blockquote>')
-      .replace(/\*\*(.*)\*\*/gim, '<strong>$1</strong>')
-      .replace(/\*(.*)\*/gim, '<em>$1</em>')
-      .replace(/!\[(.*?)\]\((.*?)\)/gim, "<img alt='$1' src='$2' />")
-      .replace(/\[(.*?)\]\((.*?)\)/gim, "<a href='$2'>$1</a>")
-      .split('\n')
-      .map(line => {
-        const trimmed = line.trim();
-        if (trimmed === '') return '<br/>';
-        // Check if the line already starts with a block-level HTML tag to avoid invalid nesting
-        if (trimmed.startsWith('<h') || trimmed.startsWith('<blockquote') || trimmed.startsWith('<img') || trimmed.startsWith('<ul') || trimmed.startsWith('<ol') || trimmed.startsWith('<li')) {
-          return line;
-        }
-        return `<p>${line}</p>`;
-      })
-      .join('');
+    
+    // Process lines to handle blocks properly and avoid invalid hydration nesting
+    const lines = text.split('\n');
+    return lines.map(line => {
+      const trimmed = line.trim();
+      if (trimmed === '') return '<br/>';
+      
+      // Check for block elements to avoid wrapping them in <p>
+      if (trimmed.startsWith('# ')) {
+        const hText = trimmed.slice(2);
+        return `<h1 id="${hText}">${hText}</h1>`;
+      }
+      if (trimmed.startsWith('## ')) {
+        const hText = trimmed.slice(3);
+        return `<h2 id="${hText}">${hText}</h2>`;
+      }
+      if (trimmed.startsWith('### ')) {
+        const hText = trimmed.slice(4);
+        return `<h3 id="${hText}">${hText}</h3>`;
+      }
+      if (trimmed.startsWith('> ')) {
+        return `<blockquote>${trimmed.slice(2)}</blockquote>`;
+      }
+
+      // Inline styles
+      let processed = trimmed
+        .replace(/\*\*(.*)\*\*/gim, '<strong>$1</strong>')
+        .replace(/\*(.*)\*/gim, '<em>$1</em>')
+        .replace(/!\[(.*?)\]\((.*?)\)/gim, "<img alt='$1' src='$2' />")
+        .replace(/\[(.*?)\]\((.*?)\)/gim, "<a href='$2'>$1</a>");
+      
+      return `<p>${processed}</p>`;
+    }).join('\n');
   };
 
   return (
@@ -271,7 +285,7 @@ export default function FormaTextApp() {
         {/* Editor & Preview Split View */}
         <div className="flex-1 flex overflow-hidden">
           {/* Editor Panel */}
-          <div className={`flex flex-col flex-1 h-full print-container no-print ${isFocusMode ? 'max-w-3xl mx-auto shadow-2xl' : ''}`}>
+          <div className={`flex flex-col flex-1 h-full no-print ${isFocusMode ? 'max-w-3xl mx-auto shadow-2xl' : ''}`}>
             <div className="flex items-center justify-between px-4 py-2 bg-muted/30 border-b">
               <span className="text-xs font-medium text-muted-foreground">SOURCE</span>
               <div className="flex items-center gap-2">
@@ -307,7 +321,7 @@ export default function FormaTextApp() {
                   ref={previewRef}
                   className="preview-content px-12 py-16 max-w-4xl mx-auto text-black"
                   style={{ fontSize: `12pt` }}
-                  dangerouslySetInnerHTML={{ __html: renderMarkdown(content) }}
+                  dangerouslySetInnerHTML={{ __html: isMounted ? renderMarkdown(content) : '' }}
                 />
               </ScrollArea>
             </div>
