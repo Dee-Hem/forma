@@ -172,10 +172,40 @@ export default function FormaTextApp() {
 
   const renderMarkdown = (text: string) => {
     if (!isMounted) return '';
+    
     const lines = text.split('\n');
     let html = '';
+    let inMathBlock = false;
+    let mathBuffer = '';
+
     lines.forEach(line => {
       const trimmed = line.trim();
+
+      // Handle display math block
+      if (trimmed.startsWith('$$')) {
+        if (!inMathBlock) {
+          inMathBlock = true;
+          mathBuffer = trimmed;
+          // Check if it's a single line display math like $$ E=mc^2 $$
+          if (trimmed.length > 2 && trimmed.endsWith('$$')) {
+            html += `<div class="my-4 text-center">${mathBuffer}</div>`;
+            inMathBlock = false;
+            mathBuffer = '';
+          }
+        } else {
+          mathBuffer += '\n' + trimmed;
+          html += `<div class="my-4 text-center">${mathBuffer}</div>`;
+          inMathBlock = false;
+          mathBuffer = '';
+        }
+        return;
+      }
+
+      if (inMathBlock) {
+        mathBuffer += '\n' + line;
+        return;
+      }
+
       if (trimmed === '') {
         html += '<div class="h-4"></div>';
       } else if (trimmed.startsWith('# ')) {
@@ -190,14 +220,21 @@ export default function FormaTextApp() {
       } else if (trimmed.startsWith('> ')) {
         html += `<blockquote>${trimmed.slice(2)}</blockquote>`;
       } else {
+        // Simple inline processing with non-greedy regex
         let processed = trimmed
-          .replace(/\*\*(.*)\*\*/gim, '<strong>$1</strong>')
-          .replace(/\*(.*)\*/gim, '<em>$1</em>')
-          .replace(/!\[(.*?)\]\((.*?)\)/gim, "<img alt='$1' src='$2' />")
-          .replace(/\[(.*?)\]\((.*?)\)/gim, "<a href='$2'>$1</a>");
+          .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+          .replace(/\*(.*?)\*/g, '<em>$1</em>')
+          .replace(/!\[(.*?)\]\((.*?)\)/g, "<img alt='$1' src='$2' />")
+          .replace(/\[(.*?)\]\((.*?)\)/g, "<a href='$2'>$1</a>");
         html += `<p>${processed}</p>`;
       }
     });
+    
+    // Safety check for unclosed math blocks
+    if (inMathBlock) {
+      html += `<div class="my-4 text-center">${mathBuffer}</div>`;
+    }
+
     return html;
   };
 
