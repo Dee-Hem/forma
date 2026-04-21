@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -68,12 +69,18 @@
   .preview-content th { @apply bg-muted/50; }
 
   @media print {
+    @page {
+      margin: 0; /* Removes browser-added headers/footers by zeroing the page area */
+    }
+
     .no-print { display: none !important; }
     
     html, body {
       background: white !important;
       height: auto !important;
       overflow: visible !important;
+      margin: 0 !important;
+      padding: 0 !important;
     }
 
     /* Override application layout constraints */
@@ -106,7 +113,7 @@
     .preview-content {
       font-size: 12pt !important;
       color: black !important;
-      padding: 0 !important;
+      padding: 2cm !important; /* Standard A4 padding since @page margin is 0 */
       margin: 0 !important;
       max-width: none !important;
       width: 100% !important;

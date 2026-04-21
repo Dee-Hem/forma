@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
@@ -63,8 +64,13 @@ export default function FormaTextApp() {
 
   // MathJax Rendering
   useEffect(() => {
-    if ((window as any).MathJax && isMounted) {
-      (window as any).MathJax.typesetPromise();
+    if (isMounted && (window as any).MathJax) {
+      // Small timeout to ensure the HTML content has actually been injected
+      // by React before MathJax scans the DOM
+      const timer = setTimeout(() => {
+        (window as any).MathJax.typesetPromise?.();
+      }, 100);
+      return () => clearTimeout(timer);
     }
   }, [content, isPreviewVisible, isMounted]);
 
@@ -132,7 +138,11 @@ export default function FormaTextApp() {
     }
   };
 
-  const handleExportPDF = () => {
+  const handleExportPDF = async () => {
+    // Re-trigger MathJax to ensure everything is rendered before print dialog opens
+    if ((window as any).MathJax) {
+      await (window as any).MathJax.typesetPromise?.();
+    }
     window.print();
     toast({ title: "PDF Export triggered", description: "Your document is being prepared for export." });
   };
@@ -149,38 +159,40 @@ export default function FormaTextApp() {
   const renderMarkdown = (text: string) => {
     if (!isMounted) return '';
     
-    // Process lines to handle blocks properly and avoid invalid hydration nesting
     const lines = text.split('\n');
-    return lines.map(line => {
+    let html = '';
+    
+    lines.forEach(line => {
       const trimmed = line.trim();
-      if (trimmed === '') return '<br/>';
+      if (trimmed === '') {
+        html += '<br/>';
+        return;
+      }
       
-      // Check for block elements to avoid wrapping them in <p>
       if (trimmed.startsWith('# ')) {
         const hText = trimmed.slice(2);
-        return `<h1 id="${hText}">${hText}</h1>`;
-      }
-      if (trimmed.startsWith('## ')) {
+        html += `<h1 id="${hText}">${hText}</h1>`;
+      } else if (trimmed.startsWith('## ')) {
         const hText = trimmed.slice(3);
-        return `<h2 id="${hText}">${hText}</h2>`;
-      }
-      if (trimmed.startsWith('### ')) {
+        html += `<h2 id="${hText}">${hText}</h2>`;
+      } else if (trimmed.startsWith('### ')) {
         const hText = trimmed.slice(4);
-        return `<h3 id="${hText}">${hText}</h3>`;
+        html += `<h3 id="${hText}">${hText}</h3>`;
+      } else if (trimmed.startsWith('> ')) {
+        html += `<blockquote>${trimmed.slice(2)}</blockquote>`;
+      } else {
+        // Simple paragraph wrapper but leave math delimiters alone for MathJax
+        let processed = trimmed
+          .replace(/\*\*(.*)\*\*/gim, '<strong>$1</strong>')
+          .replace(/\*(.*)\*/gim, '<em>$1</em>')
+          .replace(/!\[(.*?)\]\((.*?)\)/gim, "<img alt='$1' src='$2' />")
+          .replace(/\[(.*?)\]\((.*?)\)/gim, "<a href='$2'>$1</a>");
+        
+        html += `<p>${processed}</p>`;
       }
-      if (trimmed.startsWith('> ')) {
-        return `<blockquote>${trimmed.slice(2)}</blockquote>`;
-      }
-
-      // Inline styles
-      let processed = trimmed
-        .replace(/\*\*(.*)\*\*/gim, '<strong>$1</strong>')
-        .replace(/\*(.*)\*/gim, '<em>$1</em>')
-        .replace(/!\[(.*?)\]\((.*?)\)/gim, "<img alt='$1' src='$2' />")
-        .replace(/\[(.*?)\]\((.*?)\)/gim, "<a href='$2'>$1</a>");
-      
-      return `<p>${processed}</p>`;
-    }).join('\n');
+    });
+    
+    return html;
   };
 
   return (
