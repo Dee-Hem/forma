@@ -89,8 +89,8 @@
 
   @media print {
     @page {
-      margin: 0;
       size: auto;
+      margin: 20mm; /* Consistent margins across all pages */
     }
 
     body {
@@ -100,6 +100,7 @@
       padding: 0 !important;
     }
 
+    /* Surgical removal of UI components from PDF */
     .no-print, 
     [data-radix-portal], 
     [data-radix-popper-content-wrapper],
@@ -114,6 +115,7 @@
     .toaster,
     .tabs-list { 
       display: none !important; 
+      visibility: hidden !important;
     }
     
     html, body {
@@ -148,7 +150,7 @@
     .preview-content {
       font-size: 12pt !important;
       color: black !important;
-      padding: 2.5cm !important; 
+      padding: 0 !important; /* Page margin handles spacing now */
       margin: 0 !important;
       max-width: none !important;
       width: 100% !important;
@@ -161,11 +163,12 @@
     h1, h2, h3, h4 {
       page-break-after: avoid;
       break-after: avoid;
+      margin-top: 10mm !important; /* Extra room for headers starting new pages */
     }
     
-    p, blockquote, pre {
-      page-break-inside: auto;
-      break-inside: auto;
+    p, blockquote, pre, li {
+      page-break-inside: avoid; /* Prevents splitting individual paragraphs across pages */
+      break-inside: avoid;
     }
 
     .print-container {

@@ -153,6 +153,7 @@ export default function FormaTextApp() {
   };
 
   const handleExportPDF = async () => {
+    // Small delay to allow UI (like menus/toasts) to fully clear before print
     setTimeout(async () => {
       if ((window as any).MathJax) {
         await (window as any).MathJax.typesetPromise?.();
@@ -252,7 +253,6 @@ export default function FormaTextApp() {
       html = html.replace(`__DISPLAY_MATH_${i}__`, `<div class="my-6 text-center">${block}</div>`);
     });
     inlineMathBlocks.forEach((block, i) => {
-      // Use replaceAll to catch multiple instances per line
       html = html.split(`__INLINE_MATH_${i}__`).join(block);
     });
 
