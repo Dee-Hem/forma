@@ -87,7 +87,7 @@
 
   @media print {
     @page {
-      margin: 0; /* Setting margin to 0 is the most effective way to remove browser headers/footers */
+      margin: 0;
       size: auto;
     }
 
@@ -98,9 +98,9 @@
       padding: 0 !important;
     }
 
-    /* Hide everything except the content to be printed */
     .no-print, 
     [data-radix-portal], 
+    [data-radix-popper-content-wrapper],
     [role="menu"], 
     [role="dialog"],
     header, 
@@ -141,11 +141,10 @@
       overflow: visible !important;
     }
 
-    /* Standard PDF margin simulated via padding because @page margin is 0 */
     .preview-content {
       font-size: 12pt !important;
       color: black !important;
-      padding: 2cm !important; 
+      padding: 2.5cm !important; 
       margin: 0 !important;
       max-width: none !important;
       width: 100% !important;

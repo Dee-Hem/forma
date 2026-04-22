@@ -153,11 +153,14 @@ export default function FormaTextApp() {
   };
 
   const handleExportPDF = async () => {
-    if ((window as any).MathJax) {
-      await (window as any).MathJax.typesetPromise?.();
-    }
-    window.print();
-    toast({ title: "Preparing PDF Export" });
+    toast({ title: "Preparing document..." });
+    // Use a small timeout to allow dropdown menus to close and the DOM to settle
+    setTimeout(async () => {
+      if ((window as any).MathJax) {
+        await (window as any).MathJax.typesetPromise?.();
+      }
+      window.print();
+    }, 250);
   };
 
   const jumpToHeading = (text: string) => {
@@ -186,15 +189,14 @@ export default function FormaTextApp() {
         if (!inMathBlock) {
           inMathBlock = true;
           mathBuffer = trimmed;
-          // Check if it's a single line display math like $$ E=mc^2 $$
           if (trimmed.length > 2 && trimmed.endsWith('$$')) {
-            html += `<div class="my-4 text-center">${mathBuffer}</div>`;
+            html += `<div class="my-6 text-center">${mathBuffer}</div>`;
             inMathBlock = false;
             mathBuffer = '';
           }
         } else {
           mathBuffer += '\n' + trimmed;
-          html += `<div class="my-4 text-center">${mathBuffer}</div>`;
+          html += `<div class="my-6 text-center">${mathBuffer}</div>`;
           inMathBlock = false;
           mathBuffer = '';
         }
@@ -220,7 +222,6 @@ export default function FormaTextApp() {
       } else if (trimmed.startsWith('> ')) {
         html += `<blockquote>${trimmed.slice(2)}</blockquote>`;
       } else {
-        // Simple inline processing with non-greedy regex
         let processed = trimmed
           .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
           .replace(/\*(.*?)\*/g, '<em>$1</em>')
@@ -230,9 +231,8 @@ export default function FormaTextApp() {
       }
     });
     
-    // Safety check for unclosed math blocks
     if (inMathBlock) {
-      html += `<div class="my-4 text-center">${mathBuffer}</div>`;
+      html += `<div class="my-6 text-center">${mathBuffer}</div>`;
     }
 
     return html;
