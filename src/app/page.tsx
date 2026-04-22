@@ -42,7 +42,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 export default function FormaTextApp() {
-  const [content, setContent] = useState<string>('# Welcome to FormaText\n\nWrite beautiful **Markdown** and *reStructuredText* documents here. \n\n## Math Support\n\n$E = mc^2$\n\n$$\\int_a^b f(x)dx$$\n\n## Features\n- Live Preview\n- AI Writing Assistant\n- PDF Export\n- TOC Navigation');
+  const [content, setContent] = useState<string>('# Welcome to FormaText\n\nWrite beautiful **Markdown** and *reStructuredText* documents here. \n\n***\n\n## Math Support\n\n$E = mc^2$\n\n$$\\int_a^b f(x)dx$$\n\n## Features\n- Live Preview\n- AI Writing Assistant\n- PDF Export\n- TOC Navigation');
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isPreviewVisible, setIsPreviewVisible] = useState(true);
@@ -153,13 +153,12 @@ export default function FormaTextApp() {
   };
 
   const handleExportPDF = async () => {
-    // We don't show a toast here to avoid it appearing in the print
     setTimeout(async () => {
       if ((window as any).MathJax) {
         await (window as any).MathJax.typesetPromise?.();
       }
       window.print();
-    }, 500); // Increased timeout to ensure UI elements are cleared
+    }, 500);
   };
 
   const jumpToHeading = (text: string) => {
@@ -175,12 +174,19 @@ export default function FormaTextApp() {
   const renderMarkdown = (text: string) => {
     if (!isMounted) return '';
     
-    // Pre-process display math to prevent it from being broken by line processing
+    // Protect display math blocks
     let processedText = text;
     const displayMathBlocks: string[] = [];
     processedText = processedText.replace(/\$\$\n?([\s\S]*?)\n?\$\$/g, (match) => {
       displayMathBlocks.push(match);
       return `__DISPLAY_MATH_${displayMathBlocks.length - 1}__`;
+    });
+
+    // Protect inline math blocks
+    const inlineMathBlocks: string[] = [];
+    processedText = processedText.replace(/\$(.+?)\$/g, (match) => {
+      inlineMathBlocks.push(match);
+      return `__INLINE_MATH_${inlineMathBlocks.length - 1}__`;
     });
 
     const lines = processedText.split('\n');
@@ -194,6 +200,13 @@ export default function FormaTextApp() {
         return;
       }
 
+      // Horizontal Rules: *** or --- or ___
+      if (/^(\s*[\*\-_]){3,}\s*$/.test(trimmed)) {
+        html += '<hr />';
+        return;
+      }
+
+      // Headings
       if (trimmed.startsWith('# ')) {
         const hText = trimmed.slice(2);
         html += `<h1 id="${hText}">${hText}</h1>`;
@@ -203,18 +216,29 @@ export default function FormaTextApp() {
       } else if (trimmed.startsWith('### ')) {
         const hText = trimmed.slice(4);
         html += `<h3 id="${hText}">${hText}</h3>`;
-      } else if (trimmed.startsWith('> ')) {
+      } 
+      // Blockquotes
+      else if (trimmed.startsWith('> ')) {
         html += `<blockquote>${trimmed.slice(2)}</blockquote>`;
-      } else if (trimmed.startsWith('- ') || trimmed.startsWith('* ')) {
+      } 
+      // Unordered Lists
+      else if (trimmed.startsWith('- ') || trimmed.startsWith('* ')) {
         html += `<li class="ml-4 mb-2">${trimmed.slice(2)}</li>`;
-      } else {
+      }
+      // Ordered Lists
+      else if (/^\d+\.\s/.test(trimmed)) {
+        const content = trimmed.replace(/^\d+\.\s/, '');
+        html += `<li class="ml-4 mb-2 list-decimal">${content}</li>`;
+      }
+      // Standard Text
+      else {
         let processed = trimmed
+          .replace(/`([^`]+)`/g, '<code>$1</code>')
           .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
           .replace(/\*(.*?)\*/g, '<em>$1</em>')
           .replace(/!\[(.*?)\]\((.*?)\)/g, "<img alt='$1' src='$2' />")
           .replace(/\[(.*?)\]\((.*?)\)/g, "<a href='$2' class='text-primary underline'>$1</a>");
         
-        // Wrap in <p> if it's not already handled
         if (!processed.startsWith('__DISPLAY_MATH_')) {
           html += `<p>${processed}</p>`;
         } else {
@@ -223,9 +247,13 @@ export default function FormaTextApp() {
       }
     });
     
-    // Restore display math blocks
+    // Restore preserved blocks
     displayMathBlocks.forEach((block, i) => {
       html = html.replace(`__DISPLAY_MATH_${i}__`, `<div class="my-6 text-center">${block}</div>`);
+    });
+    inlineMathBlocks.forEach((block, i) => {
+      // Use replaceAll to catch multiple instances per line
+      html = html.split(`__INLINE_MATH_${i}__`).join(block);
     });
 
     return html;
