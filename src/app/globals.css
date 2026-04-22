@@ -103,6 +103,8 @@
     [data-radix-popper-content-wrapper],
     [role="menu"], 
     [role="dialog"],
+    [role="status"],
+    [role="region"],
     header, 
     footer, 
     aside,

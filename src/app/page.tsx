@@ -153,14 +153,13 @@ export default function FormaTextApp() {
   };
 
   const handleExportPDF = async () => {
-    toast({ title: "Preparing document..." });
-    // Use a small timeout to allow dropdown menus to close and the DOM to settle
+    // We don't show a toast here to avoid it appearing in the print
     setTimeout(async () => {
       if ((window as any).MathJax) {
         await (window as any).MathJax.typesetPromise?.();
       }
       window.print();
-    }, 250);
+    }, 500); // Increased timeout to ensure UI elements are cleared
   };
 
   const jumpToHeading = (text: string) => {
@@ -176,41 +175,26 @@ export default function FormaTextApp() {
   const renderMarkdown = (text: string) => {
     if (!isMounted) return '';
     
-    const lines = text.split('\n');
+    // Pre-process display math to prevent it from being broken by line processing
+    let processedText = text;
+    const displayMathBlocks: string[] = [];
+    processedText = processedText.replace(/\$\$\n?([\s\S]*?)\n?\$\$/g, (match) => {
+      displayMathBlocks.push(match);
+      return `__DISPLAY_MATH_${displayMathBlocks.length - 1}__`;
+    });
+
+    const lines = processedText.split('\n');
     let html = '';
-    let inMathBlock = false;
-    let mathBuffer = '';
 
     lines.forEach(line => {
       const trimmed = line.trim();
 
-      // Handle display math block
-      if (trimmed.startsWith('$$')) {
-        if (!inMathBlock) {
-          inMathBlock = true;
-          mathBuffer = trimmed;
-          if (trimmed.length > 2 && trimmed.endsWith('$$')) {
-            html += `<div class="my-6 text-center">${mathBuffer}</div>`;
-            inMathBlock = false;
-            mathBuffer = '';
-          }
-        } else {
-          mathBuffer += '\n' + trimmed;
-          html += `<div class="my-6 text-center">${mathBuffer}</div>`;
-          inMathBlock = false;
-          mathBuffer = '';
-        }
-        return;
-      }
-
-      if (inMathBlock) {
-        mathBuffer += '\n' + line;
-        return;
-      }
-
       if (trimmed === '') {
         html += '<div class="h-4"></div>';
-      } else if (trimmed.startsWith('# ')) {
+        return;
+      }
+
+      if (trimmed.startsWith('# ')) {
         const hText = trimmed.slice(2);
         html += `<h1 id="${hText}">${hText}</h1>`;
       } else if (trimmed.startsWith('## ')) {
@@ -221,19 +205,28 @@ export default function FormaTextApp() {
         html += `<h3 id="${hText}">${hText}</h3>`;
       } else if (trimmed.startsWith('> ')) {
         html += `<blockquote>${trimmed.slice(2)}</blockquote>`;
+      } else if (trimmed.startsWith('- ') || trimmed.startsWith('* ')) {
+        html += `<li class="ml-4 mb-2">${trimmed.slice(2)}</li>`;
       } else {
         let processed = trimmed
           .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
           .replace(/\*(.*?)\*/g, '<em>$1</em>')
           .replace(/!\[(.*?)\]\((.*?)\)/g, "<img alt='$1' src='$2' />")
-          .replace(/\[(.*?)\]\((.*?)\)/g, "<a href='$2'>$1</a>");
-        html += `<p>${processed}</p>`;
+          .replace(/\[(.*?)\]\((.*?)\)/g, "<a href='$2' class='text-primary underline'>$1</a>");
+        
+        // Wrap in <p> if it's not already handled
+        if (!processed.startsWith('__DISPLAY_MATH_')) {
+          html += `<p>${processed}</p>`;
+        } else {
+          html += processed;
+        }
       }
     });
     
-    if (inMathBlock) {
-      html += `<div class="my-6 text-center">${mathBuffer}</div>`;
-    }
+    // Restore display math blocks
+    displayMathBlocks.forEach((block, i) => {
+      html = html.replace(`__DISPLAY_MATH_${i}__`, `<div class="my-6 text-center">${block}</div>`);
+    });
 
     return html;
   };
