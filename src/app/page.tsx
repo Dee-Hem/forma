@@ -42,7 +42,37 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 export default function FormaTextApp() {
-  const [content, setContent] = useState<string>('# Welcome to FormaText\n\nWrite beautiful **Markdown** and *reStructuredText* documents here. \n\n***\n\n## Math Support\n\n$E = mc^2$\n\n$$\\int_a^b f(x)dx$$\n\n## Code Blocks\n\n```javascript\nfunction helloWorld() {\n  console.log("Hello, FormaText!");\n}\n```\n\n## Features\n- Live Preview\n- AI Writing Assistant\n- PDF Export\n- TOC Navigation');
+  const [content, setContent] = useState<string>(`# Welcome to FormaText
+
+## Advanced Markdown Support
+
+### Fenced Code Blocks
+bash'''
+echo "Hello from auto-corrected bash!"
+'''
+
+\`\`\`python
+def greet(name):
+    return f"Hello, {name}!"
+\`\`\`
+
+### Task Lists
+- [x] Implement Advanced Parser
+- [ ] Add real-time collaboration
+- [x] Fix hydration errors
+
+### Tables
+| Feature | Status | Priority |
+|:---|:---:|---:|
+| MathJax | Supported | High |
+| Tables | Supported | Med |
+| PDF | Supported | High |
+
+### Footnotes & Strikethrough
+This is a strikethrough text ~~oops~~.
+And here is a footnote reference[^1].
+
+[^1]: This is the footnote definition at the bottom.`);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isPreviewVisible, setIsPreviewVisible] = useState(true);
@@ -85,7 +115,7 @@ export default function FormaTextApp() {
   useEffect(() => {
     if (isMounted && (window as any).MathJax) {
       const timer = setTimeout(() => {
-        (window as any).MathJax.typesetPromise?.().catch((e: any) => console.error(e));
+        (window as any).MathJax.typesetPromise?.().catch((e: any) => {});
       }, 100);
       return () => clearTimeout(timer);
     }
@@ -176,10 +206,13 @@ export default function FormaTextApp() {
     
     let processedText = text;
 
-    // 1. Protect Code Blocks (``` ... ```)
-    const codeBlocks: string[] = [];
-    processedText = processedText.replace(/```([\s\S]*?)```/g, (match, code) => {
-      codeBlocks.push(code.trim());
+    // 0. Auto-Correction: language''' -> ```language
+    processedText = processedText.replace(/^(\w+)'''([\s\S]*?)'''$/gm, '```$1$2```');
+
+    // 1. Protect Fenced Code Blocks (```language ... ```)
+    const codeBlocks: { content: string, lang: string }[] = [];
+    processedText = processedText.replace(/```(\w*)\n([\s\S]*?)```/g, (match, lang, code) => {
+      codeBlocks.push({ content: code.trim(), lang: lang || 'text' });
       return `__CODE_BLOCK_${codeBlocks.length - 1}__`;
     });
 
@@ -197,11 +230,47 @@ export default function FormaTextApp() {
       return `__INLINE_MATH_${inlineMathBlocks.length - 1}__`;
     });
 
+    // 4. Extract Footnote Definitions [^1]: content
+    const footnoteDefs: Record<string, string> = {};
+    processedText = processedText.replace(/^\[\^(\w+)\]:\s*(.+)$/gm, (match, id, content) => {
+      footnoteDefs[id] = content;
+      return '';
+    });
+
     const lines = processedText.split('\n');
     let html = '';
+    let inTable = false;
+    let tableRows: string[][] = [];
+
+    const flushTable = () => {
+      if (tableRows.length > 0) {
+        html += '<div class="table-wrapper"><table class="w-full border-collapse my-4">';
+        tableRows.forEach((row, i) => {
+          if (i === 0) {
+            html += '<thead><tr>' + row.map(c => `<th class="border border-border p-2 bg-muted/50">${c}</th>`).join('') + '</tr></thead><tbody>';
+          } else {
+            html += '<tr>' + row.map(c => `<td class="border border-border p-2">${c}</td>`).join('') + '</tr>';
+          }
+        });
+        html += '</tbody></table></div>';
+        tableRows = [];
+      }
+      inTable = false;
+    };
 
     lines.forEach(line => {
       const trimmed = line.trim();
+
+      // Table Check
+      if (trimmed.startsWith('|') && trimmed.endsWith('|')) {
+        const cells = trimmed.split('|').filter(c => c.trim() !== '' || trimmed.indexOf('|'+c+'|') !== -1).map(c => c.trim());
+        if (trimmed.match(/^[|:\-\s]+$/)) return; // Skip separator line
+        tableRows.push(cells);
+        inTable = true;
+        return;
+      } else if (inTable) {
+        flushTable();
+      }
 
       if (trimmed === '') {
         html += '<div class="h-4"></div>';
@@ -210,7 +279,7 @@ export default function FormaTextApp() {
 
       // Horizontal Rules
       if (/^(\s*[\*\-_]){3,}\s*$/.test(trimmed)) {
-        html += '<hr />';
+        html += '<hr class="my-8 border-t border-border" />';
         return;
       }
 
@@ -225,13 +294,20 @@ export default function FormaTextApp() {
         const hText = trimmed.slice(4);
         html += `<h3 id="${hText}">${hText}</h3>`;
       } 
+      // Task Lists
+      else if (trimmed.startsWith('- [ ] ')) {
+        html += `<li class="flex items-center gap-3 ml-4 mb-2"><input type="checkbox" disabled class="h-4 w-4 rounded border-primary" /> <span class="leading-none">${trimmed.slice(6)}</span></li>`;
+      }
+      else if (trimmed.startsWith('- [x] ')) {
+        html += `<li class="flex items-center gap-3 ml-4 mb-2"><input type="checkbox" checked disabled class="h-4 w-4 rounded border-primary" /> <span class="leading-none">${trimmed.slice(6)}</span></li>`;
+      }
       // Blockquotes
       else if (trimmed.startsWith('> ')) {
-        html += `<blockquote>${trimmed.slice(2)}</blockquote>`;
+        html += `<blockquote class="border-l-4 border-primary pl-4 italic my-4 bg-muted/30 py-2">${trimmed.slice(2)}</blockquote>`;
       } 
       // Unordered Lists
       else if (trimmed.startsWith('- ') || trimmed.startsWith('* ')) {
-        html += `<li class="ml-4 mb-2">${trimmed.slice(2)}</li>`;
+        html += `<li class="ml-4 mb-2 list-disc">${trimmed.slice(2)}</li>`;
       }
       // Ordered Lists
       else if (/^\d+\.\s/.test(trimmed)) {
@@ -241,35 +317,43 @@ export default function FormaTextApp() {
       // Standard Text
       else {
         let processed = trimmed
-          .replace(/`([^`]+)`/g, '<code>$1</code>')
+          .replace(/`([^`]+)`/g, '<code class="bg-muted px-1 rounded font-code">$1</code>')
           .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
           .replace(/\*(.*?)\*/g, '<em>$1</em>')
-          .replace(/!\[(.*?)\]\((.*?)\)/g, "<img alt='$1' src='$2' />")
+          .replace(/~~(.*?)~~/g, '<del class="opacity-60">$1</del>') // Strikethrough
+          .replace(/\[\^(\w+)\]/g, '<sup><a href="#fn-$1" id="fnref-$1" class="text-primary hover:underline">$1</a></sup>') // Footnote Ref
+          .replace(/!\[(.*?)\]\((.*?)\)/g, "<img alt='$1' src='$2' class='max-w-full h-auto rounded-lg my-4 shadow-sm' />")
           .replace(/\[(.*?)\]\((.*?)\)/g, "<a href='$2' class='text-primary underline'>$1</a>");
         
-        // Only wrap in <p> if it's not a placeholder for a block element
         if (!processed.startsWith('__DISPLAY_MATH_') && !processed.startsWith('__CODE_BLOCK_')) {
-          html += `<p>${processed}</p>`;
+          html += `<p class="mb-4 leading-relaxed">${processed}</p>`;
         } else {
           html += processed;
         }
       }
     });
+    flushTable();
+
+    // Add Footnotes Section if definitions exist
+    if (Object.keys(footnoteDefs).length > 0) {
+      html += '<div class="footnotes mt-12 pt-8 border-t border-border opacity-80"><h4 class="text-sm font-bold mb-4">Footnotes</h4><ol class="list-decimal ml-6">';
+      for (const [id, content] of Object.entries(footnoteDefs)) {
+        html += `<li id="fn-${id}" class="mb-2 text-sm">${content} <a href="#fnref-${id}" class="text-primary hover:underline ml-1">↩</a></li>`;
+      }
+      html += '</ol></div>';
+    }
     
     // Restore preserved blocks
-    codeBlocks.forEach((code, i) => {
-      // Escape HTML special characters for the code block
-      const escapedCode = code
+    codeBlocks.forEach((block, i) => {
+      const escapedCode = block.content
         .replace(/&/g, "&amp;")
         .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
-      html = html.split(`__CODE_BLOCK_${i}__`).join(`<pre><code>${escapedCode}</code></pre>`);
+        .replace(/>/g, "&gt;");
+      html = html.split(`__CODE_BLOCK_${i}__`).join(`<div class="relative group my-6"><div class="absolute right-3 top-2 text-[10px] font-bold text-muted-foreground/50 uppercase select-none">${block.lang}</div><pre class="bg-muted p-4 rounded-md overflow-x-auto font-code border border-border/50 shadow-sm language-${block.lang}"><code>${escapedCode}</code></pre></div>`);
     });
 
     displayMathBlocks.forEach((block, i) => {
-      html = html.replace(`__DISPLAY_MATH_${i}__`, `<div class="my-6 text-center">${block}</div>`);
+      html = html.replace(`__DISPLAY_MATH_${i}__`, `<div class="my-8 text-center text-lg">${block}</div>`);
     });
 
     inlineMathBlocks.forEach((block, i) => {
