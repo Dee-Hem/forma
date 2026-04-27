@@ -94,14 +94,22 @@
   @media print {
     @page {
       size: auto;
-      margin: 20mm;
+      margin: 20mm; /* Professional top margin on every page */
     }
 
-    body {
+    /* Force all containers to be visible and have automatic height for multi-page printing */
+    html, body {
+      height: auto !important;
+      overflow: visible !important;
       background: white !important;
       color: black !important;
-      margin: 0 !important;
-      padding: 0 !important;
+    }
+
+    /* Target standard Radix and NextJS containers */
+    div, main, section, [data-radix-scroll-area-viewport] {
+      height: auto !important;
+      overflow: visible !important;
+      position: static !important;
     }
 
     .no-print, 
@@ -116,7 +124,8 @@
     aside,
     button,
     .toaster,
-    .tabs-list { 
+    .tabs-list,
+    .no-print { 
       display: none !important; 
     }
     
@@ -126,17 +135,30 @@
       background: white !important;
       width: 100% !important;
       max-width: none !important;
+      padding: 0 !important;
+      margin: 0 !important;
     }
 
     h1, h2, h3 {
       page-break-after: avoid;
       break-after: avoid;
-      margin-top: 15mm !important;
+      margin-top: 15mm !important; /* Breathing room for headers */
+    }
+
+    h1:first-child, h2:first-child {
+      margin-top: 0 !important;
     }
     
     p, blockquote, pre, li, tr {
       page-break-inside: avoid;
       break-inside: avoid;
+    }
+
+    /* Ensure display math is centered and visible */
+    .math-display {
+      width: 100%;
+      text-align: center;
+      margin: 2rem 0;
     }
   }
 }

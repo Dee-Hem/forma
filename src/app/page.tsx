@@ -47,9 +47,9 @@ export default function FormaTextApp() {
 ## Advanced Markdown Support
 
 ### Fenced Code Blocks
-bash'''
+\`\`\`bash
 echo "Hello from auto-corrected bash!"
-'''
+\`\`\`
 
 \`\`\`python
 def greet(name):
@@ -72,7 +72,12 @@ def greet(name):
 This is a strikethrough text ~~oops~~.
 And here is a footnote reference[^1].
 
-[^1]: This is the footnote definition at the bottom.`);
+[^1]: This is the footnote definition at the bottom.
+
+### Math Notation
+When $a \ne 0$, there are two solutions to \(ax^2 + bx + c = 0\) and they are
+$$x = {-b \pm \sqrt{b^2-4ac} \over 2a}$$`);
+
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isPreviewVisible, setIsPreviewVisible] = useState(true);
@@ -183,12 +188,13 @@ And here is a footnote reference[^1].
   };
 
   const handleExportPDF = async () => {
+    // Small delay to ensure any open menus or toasts are cleared
     setTimeout(async () => {
       if ((window as any).MathJax) {
         await (window as any).MathJax.typesetPromise?.();
       }
       window.print();
-    }, 500);
+    }, 300);
   };
 
   const jumpToHeading = (text: string) => {
@@ -207,7 +213,7 @@ And here is a footnote reference[^1].
     let processedText = text;
 
     // 0. Auto-Correction: language''' -> ```language
-    processedText = processedText.replace(/^(\w+)'''([\s\S]*?)'''$/gm, '```$1$2```');
+    processedText = processedText.replace(/^(\w+)'''([\s\S]*?)'''$/gm, '```$1\n$2\n```');
 
     // 1. Protect Fenced Code Blocks (```language ... ```)
     const codeBlocks: { content: string, lang: string }[] = [];
@@ -353,7 +359,7 @@ And here is a footnote reference[^1].
     });
 
     displayMathBlocks.forEach((block, i) => {
-      html = html.replace(`__DISPLAY_MATH_${i}__`, `<div class="my-8 text-center text-lg">${block}</div>`);
+      html = html.replace(`__DISPLAY_MATH_${i}__`, `<div class="my-8 text-center text-lg math-display">${block}</div>`);
     });
 
     inlineMathBlocks.forEach((block, i) => {
