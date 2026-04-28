@@ -84,32 +84,27 @@
   .preview-content td { @apply p-3 border-b border-border; }
   .preview-content tr:last-child td { @apply border-b-0; }
 
-  /* Syntax Highlighting Themes */
-  .preview-content .language-python { --code-accent: #3572A5; }
-  .preview-content .language-bash { --code-accent: #89e051; }
-  .preview-content .language-r { --code-accent: #198ce7; }
-  .preview-content .language-php { --code-accent: #4F5D95; }
-  .preview-content .language-prolog { --code-accent: #74283c; }
-
   @media print {
     @page {
       size: auto;
-      margin: 20mm; /* Professional top margin on every page */
+      margin: 0.75in;
     }
 
-    /* Force all containers to be visible and have automatic height for multi-page printing */
     html, body {
       height: auto !important;
       overflow: visible !important;
       background: white !important;
       color: black !important;
+      width: 100% !important;
+      font-size: 12pt !important;
     }
 
-    /* Target standard Radix and NextJS containers */
+    /* Force all containers to be visible for multi-page printing */
     div, main, section, [data-radix-scroll-area-viewport] {
       height: auto !important;
       overflow: visible !important;
       position: static !important;
+      display: block !important;
     }
 
     .no-print, 
@@ -124,8 +119,7 @@
     aside,
     button,
     .toaster,
-    .tabs-list,
-    .no-print { 
+    .tabs-list { 
       display: none !important; 
     }
     
@@ -139,14 +133,25 @@
       margin: 0 !important;
     }
 
-    h1, h2, h3 {
+    h1 {
+      font-size: 24pt !important;
+      margin-top: 0 !important;
+      margin-bottom: 15mm !important;
       page-break-after: avoid;
       break-after: avoid;
-      margin-top: 15mm !important; /* Breathing room for headers */
     }
 
-    h1:first-child, h2:first-child {
-      margin-top: 0 !important;
+    h2 {
+      font-size: 18pt !important;
+      margin-top: 10mm !important;
+      margin-bottom: 8mm !important;
+      page-break-after: avoid;
+      break-after: avoid;
+    }
+
+    h3 {
+      font-size: 14pt !important;
+      margin-top: 8mm !important;
     }
     
     p, blockquote, pre, li, tr {
@@ -154,7 +159,14 @@
       break-inside: avoid;
     }
 
-    /* Ensure display math is centered and visible */
+    pre, code {
+      font-size: 10pt !important;
+      white-space: pre-wrap !important;
+      word-break: break-all !important;
+      background: #f8f8f8 !important;
+      color: black !important;
+    }
+
     .math-display {
       width: 100%;
       text-align: center;

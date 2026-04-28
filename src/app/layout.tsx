@@ -1,4 +1,3 @@
-
 import type {Metadata} from 'next';
 import './globals.css';
 import {Toaster} from '@/components/ui/toaster';
@@ -6,6 +5,11 @@ import {Toaster} from '@/components/ui/toaster';
 export const metadata: Metadata = {
   title: 'FormaText - Professional Markdown & reStructuredText Editor',
   description: 'A clean, minimal, and high-fidelity editor for modern writers.',
+};
+
+export const viewport = {
+  width: 'device-width',
+  initialScale: 1,
 };
 
 export default function RootLayout({
