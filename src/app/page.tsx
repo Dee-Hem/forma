@@ -75,8 +75,8 @@ And here is a footnote reference[^1].
 [^1]: This is the footnote definition at the bottom.
 
 ### Math Notation
-When $a \ne 0$, there are two solutions to \(ax^2 + bx + c = 0\) and they are
-$$x = {-b \pm \sqrt{b^2-4ac} \over 2a}$$`);
+When $a \\ne 0$, there are two solutions to \\(ax^2 + bx + c = 0\\) and they are
+$$x = {-b \\pm \\sqrt{b^2-4ac} \\over 2a}$$`);
 
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -188,7 +188,6 @@ $$x = {-b \pm \sqrt{b^2-4ac} \over 2a}$$`);
   };
 
   const handleExportPDF = async () => {
-    // Small delay to ensure any open menus or toasts are cleared
     setTimeout(async () => {
       if ((window as any).MathJax) {
         await (window as any).MathJax.typesetPromise?.();
@@ -231,7 +230,7 @@ $$x = {-b \pm \sqrt{b^2-4ac} \over 2a}$$`);
 
     // 3. Protect inline math blocks ($ ... $)
     const inlineMathBlocks: string[] = [];
-    processedText = processedText.replace(/\$(.+?)\$/g, (match) => {
+    processedText = processedText.replace(/\$([^\$\n]+?)\$/g, (match) => {
       inlineMathBlocks.push(match);
       return `__INLINE_MATH_${inlineMathBlocks.length - 1}__`;
     });
@@ -270,7 +269,7 @@ $$x = {-b \pm \sqrt{b^2-4ac} \over 2a}$$`);
       // Table Check
       if (trimmed.startsWith('|') && trimmed.endsWith('|')) {
         const cells = trimmed.split('|').filter(c => c.trim() !== '' || trimmed.indexOf('|'+c+'|') !== -1).map(c => c.trim());
-        if (trimmed.match(/^[|:\-\s]+$/)) return; // Skip separator line
+        if (trimmed.match(/^[|:\-\s]+$/)) return;
         tableRows.push(cells);
         inTable = true;
         return;
@@ -285,7 +284,7 @@ $$x = {-b \pm \sqrt{b^2-4ac} \over 2a}$$`);
 
       // Horizontal Rules
       if (/^(\s*[\*\-_]){3,}\s*$/.test(trimmed)) {
-        html += '<hr class="my-8 border-t border-border" />';
+        html += '<hr class="my-6 border-t border-border" />';
         return;
       }
 
@@ -302,10 +301,10 @@ $$x = {-b \pm \sqrt{b^2-4ac} \over 2a}$$`);
       } 
       // Task Lists
       else if (trimmed.startsWith('- [ ] ')) {
-        html += `<li class="flex items-center gap-3 ml-4 mb-2"><input type="checkbox" disabled class="h-4 w-4 rounded border-primary" /> <span class="leading-none">${trimmed.slice(6)}</span></li>`;
+        html += `<li class="flex items-center gap-2 ml-4 mb-0.5"><input type="checkbox" disabled class="h-4 w-4 rounded border-primary" /> <span class="leading-none">${trimmed.slice(6)}</span></li>`;
       }
       else if (trimmed.startsWith('- [x] ')) {
-        html += `<li class="flex items-center gap-3 ml-4 mb-2"><input type="checkbox" checked disabled class="h-4 w-4 rounded border-primary" /> <span class="leading-none">${trimmed.slice(6)}</span></li>`;
+        html += `<li class="flex items-center gap-2 ml-4 mb-0.5"><input type="checkbox" checked disabled class="h-4 w-4 rounded border-primary" /> <span class="leading-none">${trimmed.slice(6)}</span></li>`;
       }
       // Blockquotes
       else if (trimmed.startsWith('> ')) {
@@ -313,12 +312,12 @@ $$x = {-b \pm \sqrt{b^2-4ac} \over 2a}$$`);
       } 
       // Unordered Lists
       else if (trimmed.startsWith('- ') || trimmed.startsWith('* ')) {
-        html += `<li class="ml-4 mb-2 list-disc">${trimmed.slice(2)}</li>`;
+        html += `<li class="ml-4 mb-0.5 list-disc">${trimmed.slice(2)}</li>`;
       }
       // Ordered Lists
       else if (/^\d+\.\s/.test(trimmed)) {
         const content = trimmed.replace(/^\d+\.\s/, '');
-        html += `<li class="ml-4 mb-2 list-decimal">${content}</li>`;
+        html += `<li class="ml-4 mb-0.5 list-decimal">${content}</li>`;
       }
       // Standard Text
       else {
@@ -326,13 +325,13 @@ $$x = {-b \pm \sqrt{b^2-4ac} \over 2a}$$`);
           .replace(/`([^`]+)`/g, '<code class="bg-muted px-1 rounded font-code">$1</code>')
           .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
           .replace(/\*(.*?)\*/g, '<em>$1</em>')
-          .replace(/~~(.*?)~~/g, '<del class="opacity-60">$1</del>') // Strikethrough
-          .replace(/\[\^(\w+)\]/g, '<sup><a href="#fn-$1" id="fnref-$1" class="text-primary hover:underline">$1</a></sup>') // Footnote Ref
+          .replace(/~~(.*?)~~/g, '<del class="opacity-60">$1</del>')
+          .replace(/\[\^(\w+)\]/g, '<sup><a href="#fn-$1" id="fnref-$1" class="text-primary hover:underline">$1</a></sup>')
           .replace(/!\[(.*?)\]\((.*?)\)/g, "<img alt='$1' src='$2' class='max-w-full h-auto rounded-lg my-4 shadow-sm' />")
           .replace(/\[(.*?)\]\((.*?)\)/g, "<a href='$2' class='text-primary underline'>$1</a>");
         
         if (!processed.startsWith('__DISPLAY_MATH_') && !processed.startsWith('__CODE_BLOCK_')) {
-          html += `<p class="mb-4 leading-relaxed">${processed}</p>`;
+          html += `<p class="mb-2 leading-relaxed">${processed}</p>`;
         } else {
           html += processed;
         }
@@ -340,26 +339,24 @@ $$x = {-b \pm \sqrt{b^2-4ac} \over 2a}$$`);
     });
     flushTable();
 
-    // Add Footnotes Section if definitions exist
     if (Object.keys(footnoteDefs).length > 0) {
-      html += '<div class="footnotes mt-12 pt-8 border-t border-border opacity-80"><h4 class="text-sm font-bold mb-4">Footnotes</h4><ol class="list-decimal ml-6">';
+      html += '<div class="footnotes mt-8 pt-4 border-t border-border opacity-80"><h4 class="text-sm font-bold mb-2">Footnotes</h4><ol class="list-decimal ml-6">';
       for (const [id, content] of Object.entries(footnoteDefs)) {
-        html += `<li id="fn-${id}" class="mb-2 text-sm">${content} <a href="#fnref-${id}" class="text-primary hover:underline ml-1">↩</a></li>`;
+        html += `<li id="fn-${id}" class="mb-1 text-sm">${content} <a href="#fnref-${id}" class="text-primary hover:underline ml-1">↩</a></li>`;
       }
       html += '</ol></div>';
     }
     
-    // Restore preserved blocks
     codeBlocks.forEach((block, i) => {
       const escapedCode = block.content
         .replace(/&/g, "&amp;")
         .replace(/</g, "&lt;")
         .replace(/>/g, "&gt;");
-      html = html.split(`__CODE_BLOCK_${i}__`).join(`<div class="relative group my-6"><div class="absolute right-3 top-2 text-[10px] font-bold text-muted-foreground/50 uppercase select-none">${block.lang}</div><pre class="bg-muted p-4 rounded-md overflow-x-auto font-code border border-border/50 shadow-sm language-${block.lang}"><code>${escapedCode}</code></pre></div>`);
+      html = html.split(`__CODE_BLOCK_${i}__`).join(`<div class="relative group my-4"><div class="absolute right-3 top-2 text-[10px] font-bold text-muted-foreground/50 uppercase select-none">${block.lang}</div><pre class="bg-muted p-2 rounded-md overflow-x-auto font-code border border-border/50 shadow-sm language-${block.lang}"><code>${escapedCode}</code></pre></div>`);
     });
 
     displayMathBlocks.forEach((block, i) => {
-      html = html.replace(`__DISPLAY_MATH_${i}__`, `<div class="my-8 text-center text-lg math-display">${block}</div>`);
+      html = html.replace(`__DISPLAY_MATH_${i}__`, `<div class="my-4 text-center text-lg math-display">${block}</div>`);
     });
 
     inlineMathBlocks.forEach((block, i) => {
@@ -555,7 +552,7 @@ $$x = {-b \pm \sqrt{b^2-4ac} \over 2a}$$`);
               <ScrollArea className="flex-1">
                 <div 
                   ref={previewRef}
-                  className="preview-content px-8 md:px-16 py-10 md:py-24 max-w-4xl mx-auto text-black dark:text-slate-100"
+                  className="preview-content px-8 md:px-16 py-10 md:py-16 max-w-4xl mx-auto text-black dark:text-slate-100"
                   style={{ fontSize: `12pt` }}
                   dangerouslySetInnerHTML={{ __html: isMounted ? renderMarkdown(content) : '' }}
                 />
