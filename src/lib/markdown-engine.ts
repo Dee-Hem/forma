@@ -88,11 +88,11 @@ export function renderMarkdown(content: string): string {
   // Pre-processing for custom GitHub alerts [!NOTE] -> ::: NOTE
   let processed = content.replace(/\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\]/g, '::: $1');
   
+  // Handle page break marker
+  processed = processed.replace(/<!-- page-break -->/g, '<div class="page-break"></div>');
+
   // Auto-correction for non-standard code block syntax (e.g. bash''' -> ```bash)
   processed = processed.replace(/^(\w+)'''([\s\S]*?)'''$/gm, '```$1\n$2\n```');
-
-  // Protect Math blocks from standard Markdown processing
-  // This is a simple protection mechanism to avoid $ being treated as other syntax
   
   return md.render(processed);
 }

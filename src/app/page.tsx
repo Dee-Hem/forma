@@ -42,7 +42,8 @@ import {
   Italic,
   Strikethrough,
   Quote,
-  Code
+  Code,
+  Layers
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -71,6 +72,15 @@ import Editor from '@monaco-editor/react';
 import { renderMarkdown } from '@/lib/markdown-engine';
 import { Input } from '@/components/ui/input';
 import { CommandDialog, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogHeader, 
+  DialogTitle, 
+  DialogDescription,
+  DialogTrigger
+} from '@/components/ui/dialog';
+import { RESUME_TEMPLATES, ResumeTemplate } from '@/lib/templates';
 
 interface Document {
   id: string;
@@ -91,6 +101,7 @@ export default function FormaTextApp() {
   const [searchQuery, setSearchQuery] = useState('');
   const [theme, setTheme] = useState<'light' | 'dark'>('dark');
   const [isCommandOpen, setIsCommandOpen] = useState(false);
+  const [isTemplatesOpen, setIsTemplatesOpen] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -246,16 +257,17 @@ export default function FormaTextApp() {
     setDocuments(prev => prev.map(d => d.id === activeDocId ? { ...d, content: val, updatedAt: Date.now() } : d));
   };
 
-  const createNewDoc = () => {
+  const createNewDoc = (title = 'Untitled', content = '') => {
     const newDoc: Document = {
       id: Math.random().toString(36).substr(2, 9),
-      title: 'Untitled',
-      content: '',
+      title: title,
+      content: content,
       updatedAt: Date.now(),
       isFavorite: false
     };
     setDocuments(prev => [newDoc, ...prev]);
     setActiveDocId(newDoc.id);
+    return newDoc;
   };
 
   const deleteDoc = (id: string) => {
@@ -296,6 +308,15 @@ export default function FormaTextApp() {
         return null;
       })
       .filter(Boolean);
+  };
+
+  const useTemplate = (template: ResumeTemplate) => {
+    createNewDoc(template.name, template.content);
+    setIsTemplatesOpen(false);
+    toast({
+      title: `${template.name} template loaded`,
+      description: "You can now edit your resume."
+    });
   };
 
   if (!isMounted) return null;
@@ -430,9 +451,15 @@ export default function FormaTextApp() {
                           />
                         </div>
                         <div className="space-y-1">
-                          <Button variant="ghost" size="sm" onClick={createNewDoc} className="w-full justify-start text-xs h-8">
-                            <Plus className="w-3 h-3 mr-2" /> New Document
-                          </Button>
+                          <div className="flex items-center gap-1 w-full">
+                            <Button variant="ghost" size="sm" onClick={() => createNewDoc()} className="flex-1 justify-start text-xs h-8 px-2">
+                              <Plus className="w-3 h-3 mr-2" /> New
+                            </Button>
+                            <Button variant="ghost" size="sm" onClick={() => setIsTemplatesOpen(true)} className="flex-1 justify-start text-xs h-8 px-2">
+                              <Layers className="w-3 h-3 mr-2" /> Templates
+                            </Button>
+                          </div>
+                          <Separator className="my-2" />
                           {documents
                             .filter(d => d.title.toLowerCase().includes(searchQuery.toLowerCase()))
                             .map(doc => (
@@ -467,7 +494,10 @@ export default function FormaTextApp() {
                               className="w-full text-left text-xs py-1.5 px-2 rounded hover:bg-muted/50 truncate text-muted-foreground hover:text-foreground transition-colors"
                               style={{ paddingLeft: `${(item.level - 1) * 12 + 8}px` }}
                               onClick={() => {
-                                // Monaco scroll to line logic could go here
+                                if (editorRef.current) {
+                                  // Scroll to line in Monaco (approximate)
+                                  editorRef.current.editor.revealLineInCenter(item.id + 1);
+                                }
                               }}
                             >
                               {item.text}
@@ -603,8 +633,8 @@ export default function FormaTextApp() {
             <CommandItem onSelect={() => { createNewDoc(); setIsCommandOpen(false); }}>
               <Plus className="mr-2 h-4 w-4" /> New Document
             </CommandItem>
-            <CommandItem onSelect={() => setIsCommandOpen(false)}>
-              <Search className="mr-2 h-4 w-4" /> Search Documents
+            <CommandItem onSelect={() => { setIsTemplatesOpen(true); setIsCommandOpen(false); }}>
+              <Layers className="mr-2 h-4 w-4" /> Resume Templates
             </CommandItem>
           </CommandGroup>
           <CommandGroup heading="View">
@@ -640,6 +670,38 @@ export default function FormaTextApp() {
           </CommandGroup>
         </CommandList>
       </CommandDialog>
+
+      {/* Templates Dialog */}
+      <Dialog open={isTemplatesOpen} onOpenChange={setIsTemplatesOpen}>
+        <DialogContent className="max-w-4xl">
+          <DialogHeader>
+            <DialogTitle>Resume Templates</DialogTitle>
+            <DialogDescription>
+              Choose a template to get started with your professional resume.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+            {RESUME_TEMPLATES.map((template) => (
+              <div 
+                key={template.id} 
+                className="group border rounded-lg p-4 hover:border-primary cursor-pointer transition-all bg-card"
+                onClick={() => useTemplate(template)}
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="font-bold">{template.name}</h3>
+                  <Badge variant="secondary">Template</Badge>
+                </div>
+                <p className="text-sm text-muted-foreground mb-4">{template.description}</p>
+                <div className="flex justify-end">
+                  <Button variant="outline" size="sm" className="group-hover:bg-primary group-hover:text-primary-foreground">
+                    Use Template
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

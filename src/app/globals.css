@@ -98,12 +98,32 @@ h1:hover .header-anchor, h2:hover .header-anchor, h3:hover .header-anchor { opac
 .zen-mode .no-zen { display: none !important; }
 .zen-mode .main-content { @apply max-w-4xl mx-auto; }
 
+/* Page Break UI */
+.page-break {
+  @apply relative my-12 border-t border-dashed border-muted-foreground/30;
+}
+.page-break::after {
+  content: "PAGE BREAK";
+  @apply absolute left-1/2 -top-3 -translate-x-1/2 bg-background px-4 text-[10px] font-bold tracking-widest text-muted-foreground;
+}
+
 /* Professional Compact Print Styles */
 @media print {
   @page {
     margin: 0.5in;
     size: auto;
   }
+
+  /* Force page breaks */
+  .page-break {
+    display: block !important;
+    height: 0 !important;
+    margin: 0 !important;
+    border: none !important;
+    page-break-after: always !important;
+    break-after: page !important;
+  }
+  .page-break::after { display: none !important; }
 
   /* Aggressively unlock containers for multi-page flow */
   html, body, 
