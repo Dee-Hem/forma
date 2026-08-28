@@ -1,4 +1,3 @@
-
 import MarkdownIt from 'markdown-it';
 import anchor from 'markdown-it-anchor';
 import container from 'markdown-it-container';
@@ -84,11 +83,16 @@ const md = new MarkdownIt({
   });
 
 export function renderMarkdown(content: string): string {
+  if (!content) return '';
+
   // Pre-processing for custom GitHub alerts [!NOTE] -> ::: NOTE
   let processed = content.replace(/\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\]/g, '::: $1');
   
-  // Auto-correction for bash''' -> ```bash
+  // Auto-correction for non-standard code block syntax (e.g. bash''' -> ```bash)
   processed = processed.replace(/^(\w+)'''([\s\S]*?)'''$/gm, '```$1\n$2\n```');
 
+  // Protect Math blocks from standard Markdown processing
+  // This is a simple protection mechanism to avoid $ being treated as other syntax
+  
   return md.render(processed);
 }

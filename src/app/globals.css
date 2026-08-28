@@ -98,14 +98,37 @@ h1:hover .header-anchor, h2:hover .header-anchor, h3:hover .header-anchor { opac
 .zen-mode .no-zen { display: none !important; }
 .zen-mode .main-content { @apply max-w-4xl mx-auto; }
 
-/* Professional Print Styles */
+/* Professional Compact Print Styles */
 @media print {
   @page {
     margin: 0.5in;
     size: auto;
   }
 
-  /* Force hide all UI elements */
+  /* Aggressively unlock containers for multi-page flow */
+  html, body, 
+  [data-panel-group], 
+  [data-panel],
+  .h-screen, 
+  .flex-col, 
+  .overflow-hidden,
+  main,
+  .preview-container,
+  [data-radix-scroll-area-viewport] {
+    overflow: visible !important;
+    height: auto !important;
+    min-height: 0 !important;
+    display: block !important;
+    position: static !important;
+    background: white !important;
+    color: black !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    width: 100% !important;
+  }
+
+  /* Hide all UI elements */
   header, 
   footer, 
   aside, 
@@ -114,42 +137,17 @@ h1:hover .header-anchor, h2:hover .header-anchor, h3:hover .header-anchor { opac
   [data-panel-resize-handle], 
   .panel-resize-handle, 
   .editor-panel-wrapper,
+  .sidebar-panel-wrapper,
   .command-palette, 
   .toaster,
   .lucide,
-  [role="dialog"] {
+  [role="dialog"],
+  [data-radix-popper-content-wrapper],
+  .radix-portal {
     display: none !important;
   }
 
-  /* Reset layout constraints */
-  html, body {
-    background: white !important;
-    color: black !important;
-    height: auto !important;
-    overflow: visible !important;
-    margin: 0 !important;
-    padding: 0 !important;
-  }
-
-  main {
-    display: block !important;
-    height: auto !important;
-    overflow: visible !important;
-    position: static !important;
-  }
-
-  /* Liberate the preview container */
-  .preview-container {
-    display: block !important;
-    width: 100% !important;
-    height: auto !important;
-    overflow: visible !important;
-    position: static !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    border: none !important;
-  }
-
+  /* Professional Typography (12pt) */
   .preview-content {
     display: block !important;
     font-size: 12pt !important;
@@ -158,12 +156,12 @@ h1:hover .header-anchor, h2:hover .header-anchor, h3:hover .header-anchor { opac
     max-width: none !important;
     padding: 0 !important;
     margin: 0 !important;
+    color: black !important;
   }
 
-  /* High-density typography */
-  .preview-content h1 { font-size: 24pt !important; margin: 10pt 0 !important; }
-  .preview-content h2 { font-size: 18pt !important; margin: 10pt 0 !important; }
-  .preview-content h3 { font-size: 14pt !important; margin: 10pt 0 !important; }
+  .preview-content h1 { font-size: 24pt !important; margin: 10pt 0 !important; page-break-after: avoid; }
+  .preview-content h2 { font-size: 18pt !important; margin: 10pt 0 !important; page-break-after: avoid; }
+  .preview-content h3 { font-size: 14pt !important; margin: 8pt 0 !important; page-break-after: avoid; }
   
   .preview-content p, 
   .preview-content blockquote, 
@@ -173,6 +171,10 @@ h1:hover .header-anchor, h2:hover .header-anchor, h3:hover .header-anchor { opac
     margin-bottom: 8pt !important;
   }
 
+  .preview-content li { 
+    margin-bottom: 2pt !important; 
+  }
+
   .preview-content pre { 
     font-size: 10pt !important; 
     white-space: pre-wrap !important; 
@@ -180,17 +182,17 @@ h1:hover .header-anchor, h2:hover .header-anchor, h3:hover .header-anchor { opac
     page-break-inside: avoid;
     padding: 6pt !important;
     margin-bottom: 8pt !important;
+    background: #f8f8f8 !important;
+    border: 1px solid #ddd !important;
   }
 
   .preview-content table { 
     page-break-inside: avoid; 
     margin-bottom: 8pt !important; 
+    border: 1px solid #ddd !important;
   }
 
-  .preview-content li { 
-    margin-bottom: 2pt !important; 
+  .preview-content th, .preview-content td {
+    border: 1px solid #ddd !important;
   }
-
-  /* Suppress forced page breaks unless huge */
-  h1, h2, h3 { page-break-after: avoid; }
 }
