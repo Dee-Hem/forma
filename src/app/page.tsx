@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
@@ -15,9 +16,34 @@ import {
   Sun,
   Moon,
   Type,
-  Eye as EyeIcon,
+  Eye,
   X,
-  MoreVertical
+  MoreVertical,
+  Plus,
+  Search,
+  Folder,
+  Hash,
+  Share2,
+  Trash2,
+  Copy,
+  Layout,
+  Columns,
+  Square,
+  Undo2,
+  Redo2,
+  Command,
+  HelpCircle,
+  Link,
+  Image as ImageIcon,
+  Table as TableIcon,
+  List,
+  ListOrdered,
+  CheckSquare,
+  Bold,
+  Italic,
+  Strikethrough,
+  Quote,
+  Code
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -27,84 +53,143 @@ import {
   DropdownMenuContent, 
   DropdownMenuItem, 
   DropdownMenuTrigger,
-  DropdownMenuSeparator
+  DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubTrigger,
+  DropdownMenuSubContent
 } from '@/components/ui/dropdown-menu';
 import { useToast } from '@/hooks/use-toast';
 import { 
   aiAutocompletion, 
   aiTextRephrasing, 
-  summarizeText, 
-  generateInitialDraft 
+  summarizeText 
 } from '@/ai/flows';
-import { generateTOC, TOCItem } from '@/lib/markdown-utils';
 import { Badge } from '@/components/ui/badge';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
+import Editor from '@monaco-editor/react';
+import { renderMarkdown } from '@/lib/markdown-engine';
+import { Input } from '@/components/ui/input';
+import { CommandDialog, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
+
+interface Document {
+  id: string;
+  title: string;
+  content: string;
+  updatedAt: number;
+  isFavorite: boolean;
+}
 
 export default function FormaTextApp() {
-  const [content, setContent] = useState<string>(`# Welcome to FormaText
-
-## Advanced Markdown Support
-
-### Fenced Code Blocks
-\`\`\`bash
-echo "Hello from auto-corrected bash!"
-\`\`\`
-
-\`\`\`python
-def greet(name):
-    return f"Hello, {name}!"
-\`\`\`
-
-### Task Lists
-- [x] Implement Advanced Parser
-- [ ] Add real-time collaboration
-- [x] Fix hydration errors
-
-### Tables
-| Feature | Status | Priority |
-|:---|:---:|---:|
-| MathJax | Supported | High |
-| Tables | Supported | Med |
-| PDF | Supported | High |
-
-### Footnotes & Strikethrough
-This is a strikethrough text ~~oops~~.
-And here is a footnote reference[^1].
-
-[^1]: This is the footnote definition at the bottom.
-
-### Math Notation
-When $a \\ne 0$, there are two solutions to \\(ax^2 + bx + c = 0\\) and they are
-$$x = {-b \\pm \\sqrt{b^2-4ac} \\over 2a}$$`);
-
-  const [lastSaved, setLastSaved] = useState<Date | null>(null);
+  // --- State ---
+  const [documents, setDocuments] = useState<Document[]>([]);
+  const [activeDocId, setActiveDocId] = useState<string>('');
+  const [viewMode, setViewMode] = useState<'editor' | 'preview' | 'split'>('split');
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-  const [isPreviewVisible, setIsPreviewVisible] = useState(true);
-  const [toc, setToc] = useState<TOCItem[]>([]);
-  const [isFocusMode, setIsFocusMode] = useState(false);
-  const [isProcessingAI, setIsProcessingAI] = useState(false);
-  const [fontSize, setFontSize] = useState(12);
+  const [isZenMode, setIsZenMode] = useState(false);
+  const [sidebarTab, setSidebarTab] = useState<'explorer' | 'outline'>('explorer');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [theme, setTheme] = useState<'light' | 'dark'>('dark');
+  const [isCommandOpen, setIsCommandOpen] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
-  const [theme, setTheme] = useState<'light' | 'dark'>('light');
-  const [activeTab, setActiveTab] = useState<'editor' | 'preview'>('editor');
-  
-  const isMobile = useIsMobile();
-  const editorRef = useRef<HTMLTextAreaElement>(null);
-  const previewRef = useRef<HTMLDivElement>(null);
-  const { toast } = useToast();
+  const [isSaving, setIsSaving] = useState(false);
 
+  const isMobile = useIsMobile();
+  const { toast } = useToast();
+  const previewRef = useRef<HTMLDivElement>(null);
+
+  const activeDoc = documents.find(d => d.id === activeDocId);
+
+  // --- Persistence ---
   useEffect(() => {
     setIsMounted(true);
-    const savedTheme = localStorage.getItem('theme') as 'light' | 'dark' | null;
+    const savedDocs = localStorage.getItem('formatext_docs');
+    const lastActive = localStorage.getItem('formatext_active_id');
+    const savedTheme = localStorage.getItem('theme') as 'light' | 'dark';
+
+    if (savedDocs) {
+      const parsed = JSON.parse(savedDocs);
+      setDocuments(parsed);
+      if (lastActive && parsed.some((d: any) => d.id === lastActive)) {
+        setActiveDocId(lastActive);
+      } else if (parsed.length > 0) {
+        setActiveDocId(parsed[0].id);
+      }
+    } else {
+      // Seed initial doc
+      const initialDoc: Document = {
+        id: 'welcome',
+        title: 'Welcome to FormaText',
+        content: '# Welcome to FormaText\n\nWrite Markdown. See it come alive.\n\n## Features\n- **Monaco Editor** integration\n- **GFM** Support\n- **Math** equations: $E=mc^2$\n- **Task Lists**\n- **Command Palette** (Cmd+K)\n\n[!NOTE]\nThis is a GitHub-style alert!',
+        updatedAt: Date.now(),
+        isFavorite: false
+      };
+      setDocuments([initialDoc]);
+      setActiveDocId('welcome');
+    }
+
     if (savedTheme) {
       setTheme(savedTheme);
       document.documentElement.classList.toggle('dark', savedTheme === 'dark');
+    } else {
+      document.documentElement.classList.add('dark');
     }
-    if (isMobile) {
-      setIsSidebarOpen(false);
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        setIsCommandOpen(prev => !prev);
+      }
+      if ((e.metaKey || e.ctrlKey) && e.key === 's') {
+        e.preventDefault();
+        handleSave();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  useEffect(() => {
+    if (isMounted) {
+      localStorage.setItem('formatext_docs', JSON.stringify(documents));
     }
-  }, [isMobile]);
+  }, [documents, isMounted]);
+
+  useEffect(() => {
+    if (isMounted && activeDocId) {
+      localStorage.setItem('formatext_active_id', activeDocId);
+    }
+  }, [activeDocId, isMounted]);
+
+  // --- Handlers ---
+  const handleSave = useCallback(() => {
+    setIsSaving(true);
+    setTimeout(() => setIsSaving(false), 800);
+    toast({ title: "Saved successfully" });
+  }, [toast]);
+
+  const updateContent = (val: string | undefined) => {
+    if (!activeDocId || val === undefined) return;
+    setDocuments(prev => prev.map(d => d.id === activeDocId ? { ...d, content: val, updatedAt: Date.now() } : d));
+  };
+
+  const createNewDoc = () => {
+    const newDoc: Document = {
+      id: Math.random().toString(36).substr(2, 9),
+      title: 'Untitled',
+      content: '',
+      updatedAt: Date.now(),
+      isFavorite: false
+    };
+    setDocuments(prev => [newDoc, ...prev]);
+    setActiveDocId(newDoc.id);
+  };
+
+  const deleteDoc = (id: string) => {
+    setDocuments(prev => prev.filter(d => d.id !== id));
+    if (activeDocId === id) setActiveDocId('');
+  };
 
   const toggleTheme = () => {
     const newTheme = theme === 'light' ? 'dark' : 'light';
@@ -113,473 +198,334 @@ $$x = {-b \\pm \\sqrt{b^2-4ac} \\over 2a}$$`);
     document.documentElement.classList.toggle('dark', newTheme === 'dark');
   };
 
-  useEffect(() => {
-    setToc(generateTOC(content));
-  }, [content]);
-
-  useEffect(() => {
-    if (isMounted && (window as any).MathJax) {
-      const timer = setTimeout(() => {
-        (window as any).MathJax.typesetPromise?.().catch((e: any) => {});
-      }, 100);
-      return () => clearTimeout(timer);
-    }
-  }, [content, isPreviewVisible, isMounted, activeTab]);
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      handleSave();
-    }, 60000);
-    return () => clearInterval(timer);
-  }, [content]);
-
-  const handleSave = useCallback(() => {
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('formatext_document', content);
-      setLastSaved(new Date());
-    }
-  }, [content]);
-
-  const handleAIComplete = async () => {
-    setIsProcessingAI(true);
-    try {
-      const suggestions = await aiAutocompletion({ editorContent: content });
-      if (suggestions && suggestions.length > 0) {
-        setContent(prev => prev + ' ' + suggestions[0]);
-        toast({ title: "AI Completion added" });
-      }
-    } catch (e) {
-      toast({ variant: "destructive", title: "AI Error" });
-    } finally {
-      setIsProcessingAI(false);
-    }
-  };
-
-  const handleAIRephrase = async () => {
-    const selection = window.getSelection()?.toString();
-    if (!selection) {
-      toast({ title: "No text selected" });
-      return;
-    }
-    setIsProcessingAI(true);
-    try {
-      const options = await aiTextRephrasing({ selectedText: selection });
-      if (options && options.length > 0) {
-        setContent(prev => prev.replace(selection, options[0]));
-        toast({ title: "Text rephrased" });
-      }
-    } catch (e) {
-      toast({ variant: "destructive", title: "AI Error" });
-    } finally {
-      setIsProcessingAI(false);
-    }
-  };
-
-  const handleAISummarize = async () => {
-    setIsProcessingAI(true);
-    try {
-      const result = await summarizeText({ text: content });
-      toast({ title: "Summary Generated", description: result.summary });
-    } catch (e) {
-      toast({ variant: "destructive", title: "AI Error" });
-    } finally {
-      setIsProcessingAI(false);
-    }
-  };
-
-  const handleExportPDF = async () => {
-    setTimeout(async () => {
-      if ((window as any).MathJax) {
-        await (window as any).MathJax.typesetPromise?.();
-      }
+  const handleExport = (format: 'md' | 'html' | 'pdf') => {
+    if (!activeDoc) return;
+    if (format === 'md') {
+      const blob = new Blob([activeDoc.content], { type: 'text/markdown' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${activeDoc.title}.md`;
+      a.click();
+    } else if (format === 'pdf') {
       window.print();
-    }, 300);
-  };
-
-  const jumpToHeading = (text: string) => {
-    if (isMobile) setActiveTab('preview');
-    const elements = previewRef.current?.querySelectorAll('h1, h2, h3, h4, h5, h6');
-    elements?.forEach((el) => {
-      if (el.textContent === text) {
-        el.scrollIntoView({ behavior: 'smooth' });
-      }
-    });
-  };
-
-  const renderMarkdown = (text: string) => {
-    if (!isMounted) return '';
-    
-    let processedText = text;
-
-    // 0. Auto-Correction: language''' -> ```language
-    processedText = processedText.replace(/^(\w+)'''([\s\S]*?)'''$/gm, '```$1\n$2\n```');
-
-    // 1. Protect Fenced Code Blocks (```language ... ```)
-    const codeBlocks: { content: string, lang: string }[] = [];
-    processedText = processedText.replace(/```(\w*)\n([\s\S]*?)```/g, (match, lang, code) => {
-      codeBlocks.push({ content: code.trim(), lang: lang || 'text' });
-      return `__CODE_BLOCK_${codeBlocks.length - 1}__`;
-    });
-
-    // 2. Protect display math blocks ($$ ... $$)
-    const displayMathBlocks: string[] = [];
-    processedText = processedText.replace(/\$\$\n?([\s\S]*?)\n?\$\$/g, (match) => {
-      displayMathBlocks.push(match);
-      return `__DISPLAY_MATH_${displayMathBlocks.length - 1}__`;
-    });
-
-    // 3. Protect inline math blocks ($ ... $)
-    const inlineMathBlocks: string[] = [];
-    processedText = processedText.replace(/\$([^\$\n]+?)\$/g, (match) => {
-      inlineMathBlocks.push(match);
-      return `__INLINE_MATH_${inlineMathBlocks.length - 1}__`;
-    });
-
-    // 4. Extract Footnote Definitions [^1]: content
-    const footnoteDefs: Record<string, string> = {};
-    processedText = processedText.replace(/^\[\^(\w+)\]:\s*(.+)$/gm, (match, id, content) => {
-      footnoteDefs[id] = content;
-      return '';
-    });
-
-    const lines = processedText.split('\n');
-    let html = '';
-    let inTable = false;
-    let tableRows: string[][] = [];
-
-    const flushTable = () => {
-      if (tableRows.length > 0) {
-        html += '<div class="table-wrapper"><table class="w-full border-collapse my-4">';
-        tableRows.forEach((row, i) => {
-          if (i === 0) {
-            html += '<thead><tr>' + row.map(c => `<th class="border border-border p-2 bg-muted/50">${c}</th>`).join('') + '</tr></thead><tbody>';
-          } else {
-            html += '<tr>' + row.map(c => `<td class="border border-border p-2">${c}</td>`).join('') + '</tr>';
-          }
-        });
-        html += '</tbody></table></div>';
-        tableRows = [];
-      }
-      inTable = false;
-    };
-
-    lines.forEach(line => {
-      const trimmed = line.trim();
-
-      // Table Check
-      if (trimmed.startsWith('|') && trimmed.endsWith('|')) {
-        const cells = trimmed.split('|').filter(c => c.trim() !== '' || trimmed.indexOf('|'+c+'|') !== -1).map(c => c.trim());
-        if (trimmed.match(/^[|:\-\s]+$/)) return;
-        tableRows.push(cells);
-        inTable = true;
-        return;
-      } else if (inTable) {
-        flushTable();
-      }
-
-      if (trimmed === '') {
-        html += '<div class="h-4"></div>';
-        return;
-      }
-
-      // Horizontal Rules
-      if (/^(\s*[\*\-_]){3,}\s*$/.test(trimmed)) {
-        html += '<hr class="my-6 border-t border-border" />';
-        return;
-      }
-
-      // Headings
-      if (trimmed.startsWith('# ')) {
-        const hText = trimmed.slice(2);
-        html += `<h1 id="${hText}">${hText}</h1>`;
-      } else if (trimmed.startsWith('## ')) {
-        const hText = trimmed.slice(3);
-        html += `<h2 id="${hText}">${hText}</h2>`;
-      } else if (trimmed.startsWith('### ')) {
-        const hText = trimmed.slice(4);
-        html += `<h3 id="${hText}">${hText}</h3>`;
-      } 
-      // Task Lists
-      else if (trimmed.startsWith('- [ ] ')) {
-        html += `<li class="flex items-center gap-2 ml-4 mb-0.5"><input type="checkbox" disabled class="h-4 w-4 rounded border-primary" /> <span class="leading-none">${trimmed.slice(6)}</span></li>`;
-      }
-      else if (trimmed.startsWith('- [x] ')) {
-        html += `<li class="flex items-center gap-2 ml-4 mb-0.5"><input type="checkbox" checked disabled class="h-4 w-4 rounded border-primary" /> <span class="leading-none">${trimmed.slice(6)}</span></li>`;
-      }
-      // Blockquotes
-      else if (trimmed.startsWith('> ')) {
-        html += `<blockquote class="border-l-4 border-primary pl-4 italic my-4 bg-muted/30 py-2">${trimmed.slice(2)}</blockquote>`;
-      } 
-      // Unordered Lists
-      else if (trimmed.startsWith('- ') || trimmed.startsWith('* ')) {
-        html += `<li class="ml-4 mb-0.5 list-disc">${trimmed.slice(2)}</li>`;
-      }
-      // Ordered Lists
-      else if (/^\d+\.\s/.test(trimmed)) {
-        const content = trimmed.replace(/^\d+\.\s/, '');
-        html += `<li class="ml-4 mb-0.5 list-decimal">${content}</li>`;
-      }
-      // Standard Text
-      else {
-        let processed = trimmed
-          .replace(/`([^`]+)`/g, '<code class="bg-muted px-1 rounded font-code">$1</code>')
-          .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-          .replace(/\*(.*?)\*/g, '<em>$1</em>')
-          .replace(/~~(.*?)~~/g, '<del class="opacity-60">$1</del>')
-          .replace(/\[\^(\w+)\]/g, '<sup><a href="#fn-$1" id="fnref-$1" class="text-primary hover:underline">$1</a></sup>')
-          .replace(/!\[(.*?)\]\((.*?)\)/g, "<img alt='$1' src='$2' class='max-w-full h-auto rounded-lg my-4 shadow-sm' />")
-          .replace(/\[(.*?)\]\((.*?)\)/g, "<a href='$2' class='text-primary underline'>$1</a>");
-        
-        if (!processed.startsWith('__DISPLAY_MATH_') && !processed.startsWith('__CODE_BLOCK_')) {
-          html += `<p class="mb-2 leading-relaxed">${processed}</p>`;
-        } else {
-          html += processed;
-        }
-      }
-    });
-    flushTable();
-
-    if (Object.keys(footnoteDefs).length > 0) {
-      html += '<div class="footnotes mt-8 pt-4 border-t border-border opacity-80"><h4 class="text-sm font-bold mb-2">Footnotes</h4><ol class="list-decimal ml-6">';
-      for (const [id, content] of Object.entries(footnoteDefs)) {
-        html += `<li id="fn-${id}" class="mb-1 text-sm">${content} <a href="#fnref-${id}" class="text-primary hover:underline ml-1">↩</a></li>`;
-      }
-      html += '</ol></div>';
     }
-    
-    codeBlocks.forEach((block, i) => {
-      const escapedCode = block.content
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;");
-      html = html.split(`__CODE_BLOCK_${i}__`).join(`<div class="relative group my-4"><div class="absolute right-3 top-2 text-[10px] font-bold text-muted-foreground/50 uppercase select-none">${block.lang}</div><pre class="bg-muted p-2 rounded-md overflow-x-auto font-code border border-border/50 shadow-sm language-${block.lang}"><code>${escapedCode}</code></pre></div>`);
-    });
-
-    displayMathBlocks.forEach((block, i) => {
-      html = html.replace(`__DISPLAY_MATH_${i}__`, `<div class="my-4 text-center text-lg math-display">${block}</div>`);
-    });
-
-    inlineMathBlocks.forEach((block, i) => {
-      html = html.split(`__INLINE_MATH_${i}__`).join(block);
-    });
-
-    return html;
   };
+
+  // --- Rendering Helpers ---
+  const generateOutline = (content: string) => {
+    const lines = content.split('\n');
+    return lines
+      .map((line, idx) => {
+        const match = line.match(/^(#{1,6})\s+(.+)$/);
+        if (match) return { level: match[1].length, text: match[2], id: idx };
+        return null;
+      })
+      .filter(Boolean);
+  };
+
+  if (!isMounted) return null;
+
+  const outline = activeDoc ? generateOutline(activeDoc.content) : [];
 
   return (
-    <div className={`flex flex-col h-screen overflow-hidden ${isFocusMode ? 'focus-mode' : ''}`}>
-      <header className="no-print flex items-center justify-between px-3 md:px-6 py-2 border-b bg-card h-14 shrink-0 shadow-sm z-30">
-        <div className="flex items-center gap-2 md:gap-4">
-          <Button variant="ghost" size="icon" onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="rounded-full">
-            <Menu className="w-5 h-5" />
-          </Button>
-          <div className="flex items-center gap-2">
-            <div className="bg-primary p-1 rounded-lg">
-              <FileText className="w-4 h-4 text-primary-foreground" />
+    <div className={`flex flex-col h-screen bg-background overflow-hidden ${isZenMode ? 'zen-mode' : ''}`}>
+      {/* Header */}
+      {!isZenMode && (
+        <header className="no-print h-12 border-b flex items-center justify-between px-4 bg-card shrink-0 z-50">
+          <div className="flex items-center gap-3">
+            <Button variant="ghost" size="icon" onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="h-8 w-8">
+              <Menu className="w-4 h-4" />
+            </Button>
+            <div className="flex items-center gap-2">
+              <FileText className="w-5 h-5 text-primary" />
+              <span className="font-bold text-sm tracking-tight hidden sm:block">FormaText</span>
             </div>
-            <h1 className="font-bold text-base md:text-xl tracking-tight hidden xs:block">FormaText</h1>
+            <Separator orientation="vertical" className="h-4 mx-2" />
+            <div className="flex items-center gap-2">
+              <Input 
+                value={activeDoc?.title || ''} 
+                onChange={(e) => setDocuments(prev => prev.map(d => d.id === activeDocId ? { ...d, title: e.target.value } : d))}
+                className="h-7 px-2 text-sm font-medium border-none bg-transparent focus-visible:ring-1 max-w-[200px]"
+              />
+              {isSaving && <span className="text-[10px] text-muted-foreground animate-pulse">Saving...</span>}
+            </div>
           </div>
-        </div>
 
-        <div className="flex items-center gap-1 md:gap-4">
-          {!isMobile && lastSaved && (
-            <span className="text-[10px] md:text-xs text-muted-foreground flex items-center gap-1.5 px-3 py-1 bg-muted/50 rounded-full">
-              <Clock className="w-3 h-3" />
-              Saved {lastSaved.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-            </span>
-          )}
-          
           <div className="flex items-center gap-1">
-            <Button variant="ghost" size="icon" onClick={toggleTheme} className="rounded-full h-9 w-9">
-              {theme === 'light' ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
+            <div className="hidden md:flex items-center bg-muted/30 rounded-lg p-0.5 mr-2">
+              <Button 
+                variant={viewMode === 'editor' ? 'secondary' : 'ghost'} 
+                size="xs" 
+                onClick={() => setViewMode('editor')}
+                className="h-7 w-7"
+              >
+                <Square className="w-3.5 h-3.5" />
+              </Button>
+              <Button 
+                variant={viewMode === 'split' ? 'secondary' : 'ghost'} 
+                size="xs" 
+                onClick={() => setViewMode('split')}
+                className="h-7 w-7"
+              >
+                <Columns className="w-3.5 h-3.5" />
+              </Button>
+              <Button 
+                variant={viewMode === 'preview' ? 'secondary' : 'ghost'} 
+                size="xs" 
+                onClick={() => setViewMode('preview')}
+                className="h-7 w-7"
+              >
+                <Eye className="w-3.5 h-3.5" />
+              </Button>
+            </div>
+
+            <Button variant="ghost" size="icon" onClick={() => setIsZenMode(true)} title="Zen Mode" className="h-8 w-8">
+              <Maximize2 className="w-4 h-4" />
             </Button>
             
-            {!isMobile && (
-              <>
-                <Button variant="secondary" size="sm" onClick={handleAIComplete} disabled={isProcessingAI} className="h-9 px-4">
-                  <Sparkles className={`w-4 h-4 mr-2 ${isProcessingAI ? 'animate-pulse text-accent' : ''}`} />
-                  Complete
-                </Button>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="sm" className="h-9">Tools</Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-48">
-                    <DropdownMenuItem onClick={handleAIRephrase}>
-                      <Type className="w-4 h-4 mr-2" /> Rephrase Selection
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={handleAISummarize}>
-                      <BookOpen className="w-4 h-4 mr-2" /> Summarize Document
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={handleExportPDF}>
-                      <Download className="w-4 h-4 mr-2" /> Export PDF
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </>
-            )}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="sm" className="h-8 px-2 text-xs">Export</Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-40">
+                <DropdownMenuItem onClick={() => handleExport('md')}><Download className="w-4 h-4 mr-2" /> Markdown</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleExport('pdf')}><Download className="w-4 h-4 mr-2" /> PDF</DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
 
-            {isMobile && (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="h-9 w-9"><MoreVertical className="w-4 h-4" /></Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-48">
-                  <DropdownMenuItem onClick={handleAIComplete}>
-                    <Sparkles className="w-4 h-4 mr-2" /> AI Complete
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={handleAIRephrase}>
-                    <Type className="w-4 h-4 mr-2" /> AI Rephrase
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={handleAISummarize}>
-                    <BookOpen className="w-4 h-4 mr-2" /> Summarize
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handleExportPDF}>
-                    <Download className="w-4 h-4 mr-2" /> Export PDF
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            )}
-
-            {!isMobile && (
-              <Button variant="primary" size="sm" onClick={handleExportPDF} className="h-9 px-4">
-                <Download className="w-4 h-4 mr-2" />
-                Export
-              </Button>
-            )}
+            <Button variant="ghost" size="icon" onClick={toggleTheme} className="h-8 w-8">
+              {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+            </Button>
+            
+            <Button variant="ghost" size="icon" className="h-8 w-8"><Settings className="w-4 h-4" /></Button>
           </div>
-        </div>
-      </header>
+        </header>
+      )}
 
-      <main className="flex flex-1 overflow-hidden relative">
-        <aside className={`no-print border-r bg-card transition-all duration-300 ease-in-out overflow-hidden ${isSidebarOpen ? 'w-64 fixed md:relative z-40 h-full shadow-2xl md:shadow-none' : 'w-0'}`}>
-          <div className="p-5 w-64 flex flex-col h-full">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xs font-bold text-muted-foreground tracking-widest flex items-center gap-2">
-                <BookOpen className="w-4 h-4" />
-                OUTLINE
-              </h2>
-              {isMobile && (
-                <Button variant="ghost" size="icon" onClick={() => setIsSidebarOpen(false)} className="rounded-full h-8 w-8">
-                  <X className="w-4 h-4" />
-                </Button>
-              )}
-            </div>
-            <ScrollArea className="flex-1 -mx-2 px-2">
-              <div className="space-y-1 pb-10">
-                {toc.length > 0 ? (
-                  toc.map((item) => (
-                    <button
-                      key={item.id}
-                      onClick={() => {
-                        jumpToHeading(item.text);
-                        if (isMobile) setIsSidebarOpen(false);
-                      }}
-                      className="w-full text-left text-sm py-2 px-3 rounded-lg hover:bg-accent/10 hover:text-primary transition-all truncate group flex items-center gap-2"
-                      style={{ paddingLeft: `${item.level * 12}px` }}
-                    >
-                      <ChevronRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
-                      {item.text}
-                    </button>
-                  ))
-                ) : (
-                  <p className="text-xs text-muted-foreground italic px-3 py-4 bg-muted/30 rounded-lg">No headings found in your document yet.</p>
-                )}
-              </div>
-            </ScrollArea>
-          </div>
-        </aside>
+      {/* Zen Mode Exit Overlay */}
+      {isZenMode && (
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          onClick={() => setIsZenMode(false)} 
+          className="fixed top-4 right-4 z-[60] h-10 w-10 bg-background/50 backdrop-blur rounded-full border shadow-xl hover:bg-background"
+        >
+          <X className="w-5 h-5" />
+        </Button>
+      )}
 
-        {isSidebarOpen && isMobile && (
-          <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-30 md:hidden" onClick={() => setIsSidebarOpen(false)} />
-        )}
+      {/* Main Content */}
+      <main className="flex-1 flex overflow-hidden relative">
+        <PanelGroup direction="horizontal">
+          {/* Sidebar */}
+          {isSidebarOpen && !isZenMode && (
+            <>
+              <Panel defaultSize={20} minSize={15} maxSize={30} className="no-print bg-card border-r">
+                <div className="flex flex-col h-full">
+                  <div className="p-3 flex items-center justify-between">
+                    <Tabs value={sidebarTab} onValueChange={(v) => setSidebarTab(v as any)} className="w-full">
+                      <TabsList className="grid w-full grid-cols-2 h-8">
+                        <TabsTrigger value="explorer" className="text-[10px] uppercase font-bold tracking-widest">Docs</TabsTrigger>
+                        <TabsTrigger value="outline" className="text-[10px] uppercase font-bold tracking-widest">Outline</TabsTrigger>
+                      </TabsList>
+                    </Tabs>
+                  </div>
 
-        <div className="flex-1 flex flex-col overflow-hidden bg-background">
-          {isMobile && (
-            <div className="bg-card border-b px-4 py-2 flex justify-center no-print shadow-sm z-20">
-              <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)} className="w-full max-w-xs">
-                <TabsList className="grid w-full grid-cols-2 h-9">
-                  <TabsTrigger value="editor" className="text-xs flex items-center gap-1.5">
-                    <Type className="w-3.5 h-3.5" /> Editor
-                  </TabsTrigger>
-                  <TabsTrigger value="preview" className="text-xs flex items-center gap-1.5">
-                    <EyeIcon className="w-3.5 h-3.5" /> Preview
-                  </TabsTrigger>
-                </TabsList>
-              </Tabs>
-            </div>
+                  <ScrollArea className="flex-1">
+                    {sidebarTab === 'explorer' ? (
+                      <div className="p-2 space-y-4">
+                        <div className="relative">
+                          <Search className="w-3 h-3 absolute left-2 top-2.5 text-muted-foreground" />
+                          <Input 
+                            placeholder="Search..." 
+                            className="h-8 pl-7 text-xs bg-muted/30 border-none"
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <Button variant="ghost" size="sm" onClick={createNewDoc} className="w-full justify-start text-xs h-8">
+                            <Plus className="w-3 h-3 mr-2" /> New Document
+                          </Button>
+                          {documents
+                            .filter(d => d.title.toLowerCase().includes(searchQuery.toLowerCase()))
+                            .map(doc => (
+                              <div 
+                                key={doc.id}
+                                className={`group flex items-center justify-between p-2 rounded-md cursor-pointer transition-colors ${activeDocId === doc.id ? 'bg-accent text-accent-foreground' : 'hover:bg-muted/50'}`}
+                                onClick={() => setActiveDocId(doc.id)}
+                              >
+                                <div className="flex items-center gap-2 truncate">
+                                  <FileText className={`w-3.5 h-3.5 ${activeDocId === doc.id ? 'text-primary' : 'text-muted-foreground'}`} />
+                                  <span className="text-xs truncate">{doc.title}</span>
+                                </div>
+                                <DropdownMenu>
+                                  <DropdownMenuTrigger asChild>
+                                    <Button variant="ghost" size="icon" className="h-6 w-6 opacity-0 group-hover:opacity-100"><MoreVertical className="w-3 h-3" /></Button>
+                                  </DropdownMenuTrigger>
+                                  <DropdownMenuContent>
+                                    <DropdownMenuItem onClick={() => deleteDoc(doc.id)} className="text-destructive"><Trash2 className="w-4 h-4 mr-2" /> Delete</DropdownMenuItem>
+                                  </DropdownMenuContent>
+                                </DropdownMenu>
+                              </div>
+                            ))
+                          }
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="p-3 space-y-1">
+                        {outline.length > 0 ? (
+                          outline.map((item: any) => (
+                            <button
+                              key={item.id}
+                              className="w-full text-left text-xs py-1.5 px-2 rounded hover:bg-muted/50 truncate text-muted-foreground hover:text-foreground transition-colors"
+                              style={{ paddingLeft: `${(item.level - 1) * 12 + 8}px` }}
+                            >
+                              {item.text}
+                            </button>
+                          ))
+                        ) : (
+                          <div className="text-[10px] text-muted-foreground italic p-4 text-center">No headings found.</div>
+                        )}
+                      </div>
+                    )}
+                  </ScrollArea>
+                </div>
+              </Panel>
+              <PanelResizeHandle className="panel-resize-handle" />
+            </>
           )}
 
-          <div className="flex flex-1 overflow-hidden relative">
-            <div className={`flex flex-col flex-1 h-full no-print bg-card md:bg-transparent ${isFocusMode ? 'max-w-4xl mx-auto' : ''} ${isMobile && activeTab !== 'editor' ? 'hidden' : 'flex'}`}>
-              <div className="flex items-center justify-between px-6 py-2 bg-muted/20 border-b shrink-0">
-                <span className="text-[10px] font-bold tracking-tighter text-muted-foreground uppercase">Source Editor</span>
-                <div className="flex items-center gap-3">
-                  <div className="flex items-center bg-muted/50 rounded-lg px-1">
-                    <Button variant="ghost" size="xs" onClick={() => setFontSize(prev => Math.max(8, prev - 1))} className="h-6 w-6">-</Button>
-                    <span className="text-[10px] font-mono px-2 w-8 text-center">{fontSize}</span>
-                    <Button variant="ghost" size="xs" onClick={() => setFontSize(prev => Math.min(32, prev + 1))} className="h-6 w-6">+</Button>
+          {/* Editor & Preview */}
+          <Panel defaultSize={viewMode === 'editor' ? 100 : viewMode === 'preview' ? 0 : 40} minSize={0}>
+            <div className={`h-full flex flex-col bg-background ${isZenMode ? 'main-content' : ''}`}>
+              {!isZenMode && (
+                <div className="h-9 border-b flex items-center px-4 gap-4 bg-muted/10 shrink-0">
+                  <div className="flex items-center gap-1">
+                    <Button variant="ghost" size="xs" className="h-6 w-6"><Bold className="w-3.5 h-3.5" /></Button>
+                    <Button variant="ghost" size="xs" className="h-6 w-6"><Italic className="w-3.5 h-3.5" /></Button>
+                    <Button variant="ghost" size="xs" className="h-6 w-6"><Code className="w-3.5 h-3.5" /></Button>
+                    <Separator orientation="vertical" className="h-3 mx-1" />
+                    <Button variant="ghost" size="xs" className="h-6 w-6"><List className="w-3.5 h-3.5" /></Button>
+                    <Button variant="ghost" size="xs" className="h-6 w-6"><ListOrdered className="w-3.5 h-3.5" /></Button>
+                    <Button variant="ghost" size="xs" className="h-6 w-6"><CheckSquare className="w-3.5 h-3.5" /></Button>
+                    <Separator orientation="vertical" className="h-3 mx-1" />
+                    <Button variant="ghost" size="xs" className="h-6 w-6"><Link className="w-3.5 h-3.5" /></Button>
+                    <Button variant="ghost" size="xs" className="h-6 w-6"><ImageIcon className="w-3.5 h-3.5" /></Button>
                   </div>
-                  <Button variant="ghost" size="icon" onClick={() => setIsFocusMode(!isFocusMode)} className={`h-6 w-6 rounded-md ${isFocusMode ? 'text-primary bg-primary/10' : ''}`}>
-                    <Maximize2 className="w-3.5 h-3.5" />
-                  </Button>
+                  <div className="flex-1" />
+                  <div className="flex items-center gap-2">
+                    <Button variant="ghost" size="xs" className="h-6 px-2 text-[10px]"><Command className="w-3 h-3 mr-1" /> K</Button>
+                  </div>
                 </div>
-              </div>
-              <textarea
-                ref={editorRef}
-                className="editor-textarea flex-1 p-6 md:p-12 w-full font-code focus:ring-0 text-foreground/90 selection:bg-primary/20 leading-relaxed outline-none"
-                style={{ fontSize: `${fontSize}pt` }}
-                value={content}
-                onChange={(e) => setContent(e.target.value)}
-                placeholder="Start typing your masterpiece..."
-                spellCheck={false}
-              />
-            </div>
-
-            <Separator orientation="vertical" className="h-full no-print hidden md:block opacity-50" />
-
-            <div className={`flex flex-col flex-1 h-full bg-white dark:bg-slate-950 print-container overflow-hidden transition-all duration-300 ${isMobile && activeTab !== 'preview' ? 'hidden' : 'flex'} ${!isPreviewVisible && !isMobile ? 'hidden' : ''}`}>
-              <div className="no-print flex items-center justify-between px-6 py-2 bg-muted/20 border-b shrink-0">
-                <span className="text-[10px] font-bold tracking-tighter text-muted-foreground uppercase">Live Preview</span>
-                {!isMobile && (
-                  <Button variant="ghost" size="icon" className="h-6 w-6 rounded-full" onClick={() => setIsPreviewVisible(false)}>
-                    <ChevronRight className="w-4 h-4" />
-                  </Button>
-                )}
-              </div>
-              <ScrollArea className="flex-1">
-                <div 
-                  ref={previewRef}
-                  className="preview-content px-8 md:px-16 py-10 md:py-16 max-w-4xl mx-auto text-black dark:text-slate-100"
-                  style={{ fontSize: `12pt` }}
-                  dangerouslySetInnerHTML={{ __html: isMounted ? renderMarkdown(content) : '' }}
+              )}
+              
+              <div className="flex-1 relative overflow-hidden">
+                <Editor
+                  height="100%"
+                  theme={theme === 'dark' ? 'vs-dark' : 'light'}
+                  language="markdown"
+                  value={activeDoc?.content || ''}
+                  onChange={updateContent}
+                  options={{
+                    minimap: { enabled: false },
+                    fontSize: 14,
+                    lineNumbers: 'on',
+                    wordWrap: 'on',
+                    padding: { top: 20 },
+                    scrollBeyondLastLine: true,
+                    automaticLayout: true,
+                    fontFamily: "'Fira Code', monospace",
+                  }}
                 />
-              </ScrollArea>
-            </div>
-
-            {!isPreviewVisible && !isMobile && (
-              <div className="no-print flex items-center bg-card border-l px-1 shadow-inner group transition-all hover:bg-muted/50">
-                <Button variant="ghost" size="icon" onClick={() => setIsPreviewVisible(true)} className="rounded-full group-hover:scale-110 transition-transform">
-                  <ChevronLeft className="w-4 h-4" />
-                </Button>
               </div>
-            )}
-          </div>
-        </div>
+            </div>
+          </Panel>
+
+          {viewMode !== 'editor' && (
+            <>
+              {!isZenMode && <PanelResizeHandle className="panel-resize-handle" />}
+              <Panel defaultSize={viewMode === 'preview' ? 100 : 40} minSize={20}>
+                <div className="h-full flex flex-col bg-background print:bg-white overflow-hidden border-l">
+                  {!isZenMode && (
+                    <div className="no-print h-9 border-b flex items-center justify-between px-4 bg-muted/10 shrink-0">
+                      <span className="text-[10px] font-bold tracking-widest text-muted-foreground">PREVIEW</span>
+                      <div className="flex items-center gap-2">
+                        <Badge variant="outline" className="text-[9px] h-4">GitHub</Badge>
+                      </div>
+                    </div>
+                  )}
+                  <ScrollArea className="flex-1">
+                    <div 
+                      ref={previewRef}
+                      className="preview-content max-w-3xl mx-auto px-8 py-12 md:px-12 md:py-20 text-foreground dark:text-slate-100"
+                      dangerouslySetInnerHTML={{ __html: renderMarkdown(activeDoc?.content || '') }}
+                    />
+                  </ScrollArea>
+                </div>
+              </Panel>
+            </>
+          )}
+        </PanelGroup>
       </main>
 
-      <footer className="no-print flex items-center justify-between px-6 py-1 border-t bg-card text-[10px] text-muted-foreground h-8 shrink-0 font-mono shadow-[0_-1px_3px_rgba(0,0,0,0.05)]">
-        <div className="flex items-center gap-6">
-          <span className="flex items-center gap-1.5"><Badge variant="outline" className="text-[8px] h-4 font-mono px-1">UTF-8</Badge> Markdown</span>
-          <span className="hidden sm:inline text-primary/60">Ready to sync</span>
-        </div>
-        <div className="flex items-center gap-6 uppercase tracking-widest font-bold opacity-80">
-          <span>{content.split(/\s+/).filter(Boolean).length} Words</span>
-          <span className="hidden sm:inline">{content.length} Characters</span>
-        </div>
-      </footer>
+      {/* Footer / Status Bar */}
+      {!isZenMode && (
+        <footer className="no-print h-7 border-t flex items-center justify-between px-4 bg-card text-[10px] font-medium text-muted-foreground shrink-0 select-none">
+          <div className="flex items-center gap-6">
+            <span className="flex items-center gap-1.5"><Badge variant="outline" className="text-[8px] h-4 font-mono px-1">GFM</Badge> Ready</span>
+            {activeDoc && (
+              <span className="flex items-center gap-3">
+                <span>{activeDoc.content.split(/\s+/).filter(Boolean).length} Words</span>
+                <span>{Math.ceil(activeDoc.content.split(/\s+/).filter(Boolean).length / 200)} Min Read</span>
+              </span>
+            )}
+          </div>
+          <div className="flex items-center gap-4">
+            <span className="flex items-center gap-1">
+              <Clock className="w-3 h-3" />
+              {activeDoc ? `Saved ${new Date(activeDoc.updatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}` : 'Ready'}
+            </span>
+          </div>
+        </footer>
+      )}
+
+      {/* Command Palette */}
+      <CommandDialog open={isCommandOpen} onOpenChange={setIsCommandOpen}>
+        <CommandInput placeholder="Type a command or search..." />
+        <CommandList>
+          <CommandEmpty>No results found.</CommandEmpty>
+          <CommandGroup heading="Documents">
+            <CommandItem onSelect={() => { createNewDoc(); setIsCommandOpen(false); }}>
+              <Plus className="mr-2 h-4 w-4" /> New Document
+            </CommandItem>
+            <CommandItem onSelect={() => setIsCommandOpen(false)}>
+              <Search className="mr-2 h-4 w-4" /> Search Documents
+            </CommandItem>
+          </CommandGroup>
+          <CommandGroup heading="View">
+            <CommandItem onSelect={() => { setViewMode('editor'); setIsCommandOpen(false); }}>
+              <Square className="mr-2 h-4 w-4" /> Editor Mode
+            </CommandItem>
+            <CommandItem onSelect={() => { setViewMode('split'); setIsCommandOpen(false); }}>
+              <Columns className="mr-2 h-4 w-4" /> Split Mode
+            </CommandItem>
+            <CommandItem onSelect={() => { setViewMode('preview'); setIsCommandOpen(false); }}>
+              <Eye className="mr-2 h-4 w-4" /> Preview Mode
+            </CommandItem>
+            <CommandItem onSelect={() => { setIsZenMode(true); setIsCommandOpen(false); }}>
+              <Maximize2 className="mr-2 h-4 w-4" /> Zen Mode
+            </CommandItem>
+          </CommandGroup>
+          <CommandGroup heading="Theme">
+            <CommandItem onSelect={() => { toggleTheme(); setIsCommandOpen(false); }}>
+              {theme === 'dark' ? <Sun className="mr-2 h-4 w-4" /> : <Moon className="mr-2 h-4 w-4" />}
+              Switch to {theme === 'dark' ? 'Light' : 'Dark'} Mode
+            </CommandItem>
+          </CommandGroup>
+        </CommandList>
+      </CommandDialog>
     </div>
   );
 }
