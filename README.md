@@ -101,5 +101,6 @@ This project is licensed under the MIT License. See the `LICENSE` file for detai
 Computer Science student and software developer interested in building practical tools with technology.
 
 ---
+<img width="1326" height="607" alt="image" src="https://github.com/user-attachments/assets/5a47183b-c8a1-40a8-b042-e06726e10bf5" />
 
 ⭐ If you find FormaText useful, consider starring the repository.
