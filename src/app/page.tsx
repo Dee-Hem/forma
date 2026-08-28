@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
@@ -208,7 +207,11 @@ export default function FormaTextApp() {
       a.download = `${activeDoc.title}.md`;
       a.click();
     } else if (format === 'pdf') {
-      window.print();
+      // Clear portals and UI state before printing
+      setIsCommandOpen(false);
+      setTimeout(() => {
+        window.print();
+      }, 150);
     }
   };
 
@@ -309,7 +312,7 @@ export default function FormaTextApp() {
           variant="ghost" 
           size="icon" 
           onClick={() => setIsZenMode(false)} 
-          className="fixed top-4 right-4 z-[60] h-10 w-10 bg-background/50 backdrop-blur rounded-full border shadow-xl hover:bg-background"
+          className="fixed top-4 right-4 z-[60] h-10 w-10 bg-background/50 backdrop-blur rounded-full border shadow-xl hover:bg-background no-print"
         >
           <X className="w-5 h-5" />
         </Button>
@@ -393,15 +396,19 @@ export default function FormaTextApp() {
                   </ScrollArea>
                 </div>
               </Panel>
-              <PanelResizeHandle className="panel-resize-handle" />
+              <PanelResizeHandle className="no-print panel-resize-handle" />
             </>
           )}
 
           {/* Editor & Preview */}
-          <Panel defaultSize={viewMode === 'editor' ? 100 : viewMode === 'preview' ? 0 : 40} minSize={0}>
+          <Panel 
+            defaultSize={viewMode === 'editor' ? 100 : viewMode === 'preview' ? 0 : 40} 
+            minSize={0}
+            className="editor-panel-wrapper"
+          >
             <div className={`h-full flex flex-col bg-background ${isZenMode ? 'main-content' : ''}`}>
               {!isZenMode && (
-                <div className="h-9 border-b flex items-center px-4 gap-4 bg-muted/10 shrink-0">
+                <div className="no-print h-9 border-b flex items-center px-4 gap-4 bg-muted/10 shrink-0">
                   <div className="flex items-center gap-1">
                     <Button variant="ghost" size="xs" className="h-6 w-6"><Bold className="w-3.5 h-3.5" /></Button>
                     <Button variant="ghost" size="xs" className="h-6 w-6"><Italic className="w-3.5 h-3.5" /></Button>
@@ -421,7 +428,7 @@ export default function FormaTextApp() {
                 </div>
               )}
               
-              <div className="flex-1 relative overflow-hidden">
+              <div className="flex-1 relative overflow-hidden print:hidden">
                 <Editor
                   height="100%"
                   theme={theme === 'dark' ? 'vs-dark' : 'light'}
@@ -445,21 +452,25 @@ export default function FormaTextApp() {
 
           {viewMode !== 'editor' && (
             <>
-              {!isZenMode && <PanelResizeHandle className="panel-resize-handle" />}
-              <Panel defaultSize={viewMode === 'preview' ? 100 : 40} minSize={20}>
-                <div className="h-full flex flex-col bg-background print:bg-white overflow-hidden border-l">
+              {!isZenMode && <PanelResizeHandle className="no-print panel-resize-handle" />}
+              <Panel 
+                defaultSize={viewMode === 'preview' ? 100 : 40} 
+                minSize={20}
+                className="preview-container"
+              >
+                <div className="h-full flex flex-col bg-background print:bg-white overflow-hidden border-l print:border-none">
                   {!isZenMode && (
                     <div className="no-print h-9 border-b flex items-center justify-between px-4 bg-muted/10 shrink-0">
-                      <span className="text-[10px] font-bold tracking-widest text-muted-foreground">PREVIEW</span>
+                      <span className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase">Preview</span>
                       <div className="flex items-center gap-2">
-                        <Badge variant="outline" className="text-[9px] h-4">GitHub</Badge>
+                        <Badge variant="outline" className="text-[9px] h-4">GFM</Badge>
                       </div>
                     </div>
                   )}
-                  <ScrollArea className="flex-1">
+                  <ScrollArea className="flex-1 print:overflow-visible">
                     <div 
                       ref={previewRef}
-                      className="preview-content max-w-3xl mx-auto px-8 py-12 md:px-12 md:py-20 text-foreground dark:text-slate-100"
+                      className="preview-content max-w-3xl mx-auto px-8 py-12 md:px-12 md:py-20 text-foreground dark:text-slate-100 print:text-black print:py-0 print:px-0"
                       dangerouslySetInnerHTML={{ __html: renderMarkdown(activeDoc?.content || '') }}
                     />
                   </ScrollArea>
@@ -493,8 +504,8 @@ export default function FormaTextApp() {
 
       {/* Command Palette */}
       <CommandDialog open={isCommandOpen} onOpenChange={setIsCommandOpen}>
-        <CommandInput placeholder="Type a command or search..." />
-        <CommandList>
+        <CommandInput placeholder="Type a command or search..." className="no-print" />
+        <CommandList className="no-print">
           <CommandEmpty>No results found.</CommandEmpty>
           <CommandGroup heading="Documents">
             <CommandItem onSelect={() => { createNewDoc(); setIsCommandOpen(false); }}>
