@@ -677,24 +677,24 @@ export default function FormaTextApp() {
           <DialogHeader>
             <DialogTitle>Resume Templates</DialogTitle>
             <DialogDescription>
-              Choose a template to get started with your professional resume.
+              Choose a template to get started with your professional resume. Each template is uniquely structured.
             </DialogDescription>
           </DialogHeader>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
             {RESUME_TEMPLATES.map((template) => (
               <div 
                 key={template.id} 
-                className="group border rounded-lg p-4 hover:border-primary cursor-pointer transition-all bg-card"
+                className="group border rounded-lg p-5 hover:border-primary cursor-pointer transition-all bg-card hover:shadow-md"
                 onClick={() => useTemplate(template)}
               >
-                <div className="flex items-center justify-between mb-2">
-                  <h3 className="font-bold">{template.name}</h3>
-                  <Badge variant="secondary">Template</Badge>
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="font-bold text-lg">{template.name}</h3>
+                  <Badge variant="secondary" className="text-[10px]">{template.id.toUpperCase()}</Badge>
                 </div>
-                <p className="text-sm text-muted-foreground mb-4">{template.description}</p>
+                <p className="text-sm text-muted-foreground mb-6 leading-relaxed">{template.description}</p>
                 <div className="flex justify-end">
-                  <Button variant="outline" size="sm" className="group-hover:bg-primary group-hover:text-primary-foreground">
-                    Use Template
+                  <Button variant="outline" size="sm" className="group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
+                    Apply Template
                   </Button>
                 </div>
               </div>

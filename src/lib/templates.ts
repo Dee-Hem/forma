@@ -9,188 +9,217 @@ export const RESUME_TEMPLATES: ResumeTemplate[] = [
   {
     id: 'modern',
     name: 'Modern (Academic)',
-    description: 'Clean, blue accents, perfect for professors and researchers.',
-    content: `# DENICE HARRIS
-Associate Professor
+    description: 'Clean, professional layout perfect for researchers, professors, and PhD candidates.',
+    content: `# DR. ELARA VANCE
+*Lead Researcher | Computational Linguistics*
 
-(212) 256-1414 | deniceharris@email.com
-[LinkedIn](https://linkedin.com/in/denice.harris)
-123 Main Street, New York City, NY
+📍 Boston, MA | 📧 elara.vance@uni.edu | 📱 +1 (617) 555-0199
+[Academic Profile](https://scholar.google.com/example) • [ResearchGate](https://researchgate.net/profile/elara)
 
 ---
 
+> "Exploring the intersection of neural networks and semantic evolution in natural language."
+
 ## EDUCATION
 
-**Ph.D.** | Harvard Business School, New York, NY | May 20XX - Aug 20XX
-*Dissertation: How do Global Politics Interfere with International Business Synchronization?*
+**Ph.D. in Computer Science** | MIT | 2018 – 2022
+- Dissertation: *Neural Architectures for Low-Resource Languages*
+- Awarded the Presidential Research Fellowship
 
-**MBA. Dean's List** | Cornell SC Johnson School of Business, New York, NY | Aug 20XX - Aug 20XX
-*Thesis: Supply Chain Management: Differences in Theory and Practice.*
-
-**BBA** | West Chester University of Pennsylvania, New York, NY | Aug 20XX – May 20XX
-*BBA summa cum laude*
+**M.Sc. in Linguistics** | Stanford University | 2016 – 2018
+- Focus: Formal Semantics and Syntax
 
 ---
 
 ## PUBLICATIONS
 
-"The Estonia Effect: How Tech Investment Builds Growth."
-*Harris, H., and Miller, G.H.*
-[International Journal of Finance 20.5 (2020): 5-26](https://example.com)
+### Journal Articles
+1. **Vance, E.**, & Chen, L. (2023). "Zero-Shot Learning in Morphologically Rich Languages." *Journal of AI Research*.
+2. Smith, K., **Vance, E.**, et al. (2022). "The Evolution of Digital Dialects." *Computational Linguistics Quarterly*.
 
-"Why firms fail when expanding: The effects of expansions on team performance."
-*Willborow, J., Sherman, H., and Harris, H.*
-[Journal of International Business Studies 19.2 (2018): 12-37.](https://example.com)
+### Conference Papers
+- *NeurIPS 2022*: "Transformer-XL for Ancient Text Reconstruction."
+- *ICLR 2021*: "Efficient Tokenization Strategies for Agglutinative Languages."
 
 <!-- page-break -->
 
 ## TEACHING EXPERIENCE
 
-**Associate Professor** | NYU Stern School of Business, New York, NY | Sep 20XX - Present
-*Department of International Business*
-- Taught weekly lectures in courses on Business Ethics and Entrepreneurship in Practice
-- Designed and implemented a change in course curriculum, resulting in a 150% increase in student enrollment over two years
-- Coordinated with experts in the field of accounting and supply chain management to give lectures to enrolled students
+**Adjunct Professor** | Harvard University | 2022 – Present
+- CS224N: Natural Language Processing with Deep Learning
+- Developed new curriculum focused on Ethical AI and bias mitigation.
 
-**Graduate** | NTU Stern School of Business, New York, NY | Jun 20XX - May 20XX
-- International Business – TA
-- Taught face-to-face
-- Designed course curriculum, organized class lectures, and set deadlines for projects.
+**Graduate Teaching Assistant** | MIT | 2019 – 2021
+- Advanced Algorithms
+- Intro to Machine Learning
 
 ---
 
-## RESEARCH EXPERIENCE
+## RESEARCH GRANTS
 
-**Lead Researcher** | Cornell SC Johnson School of Business, New York, NY | Jan 20XX - Mar 20XX
-- Focused on emerging markets and tech growth in Baltic regions.
+- **NSF Grant #88219** ($250,000): "Preserving Endangered Dialects through AI."
+- **Google Research Award** ($50,000): "Multilingual Embedding Space Optimization."
+
+---
+
+## TECHNICAL SKILLS
+
+- **Core:** Python, PyTorch, TensorFlow, R, LaTeX
+- **Specializations:** Transformer Architectures, Sentiment Analysis, Named Entity Recognition
+- **Languages:** English (Native), French (C1), Mandarin (B2)
 `
   },
   {
     id: 'classic',
     name: 'Classic Professional',
-    description: 'Traditional serif layout for corporate and executive roles.',
-    content: `# JONATHAN SMITH
-*Executive Leadership | Strategic Operations*
+    description: 'A traditional, results-driven layout for corporate executives and senior management.',
+    content: `# MARCUS J. THORNE
+**Senior Vice President of Operations**
 
-123 Business Way, Chicago, IL | (555) 012-3456 | j.smith@email.com
+123 Executive Plaza, Chicago, IL | (312) 555-0100 | m.thorne@corporate.com
+[LinkedIn](https://linkedin.com/in/marcus-thorne)
 
 ---
 
 ## EXECUTIVE SUMMARY
-Visionary leader with 15+ years of experience driving multi-million dollar growth in competitive global markets. Expert in cross-functional team management, digital transformation, and scalable operational strategies.
+Visionary Operations Executive with over 20 years of experience leading multi-national teams in the manufacturing and logistics sectors. Proven track record of increasing operational efficiency by up to 40% while reducing overhead costs by $15M+ annually. Expert in Lean Six Sigma, global supply chain optimization, and strategic turnarounds.
 
 ---
 
 ## CORE COMPETENCIES
-- Strategic Planning & Execution
-- P&L Management
-- Change Management
-- Business Development
-- Global Team Leadership
+- **Strategic Planning:** P&L Management, M&A Integration, Market Expansion
+- **Operational Excellence:** Lean Manufacturing, Six Sigma Black Belt, Kaizen
+- **Leadership:** Change Management, Cross-functional Team Building, Talent Mentoring
 
 ---
 
 ## PROFESSIONAL EXPERIENCE
 
-**Vice President of Operations** | Global Tech Solutions | 2018 – Present
-- Orchestrated a 40% increase in operational efficiency through lean methodology.
-- Managed a $50M annual budget, consistently delivering 5-10% under-spend.
+### Global Logistics Corp | SVP Operations | 2015 – Present
+- Orchestrated the digital transformation of 12 regional distribution centers, reducing delivery times by 22%.
+- Managed an annual operational budget of $85M, consistently delivering 8% under budget.
+- Led a successful merger integration of three regional competitors, capturing $10M in synergies within 12 months.
 
 <!-- page-break -->
 
-**Director of Strategy** | Innovate Corp | 2012 – 2018
-- Led the market entry strategy for three new product lines in Asian markets.
-- Developed a high-performance culture resulting in a 25% reduction in employee turnover.
+### Innovate Manufacturing | Director of Supply Chain | 2008 – 2015
+- Developed a global sourcing strategy that mitigated risks during significant market volatility.
+- Reduced inventory holding costs by 18% through the implementation of a Just-In-Time (JIT) system.
+- Mentored a team of 15 managers, 4 of whom were promoted to VP roles within the company.
 
 ---
 
 ## EDUCATION
+
 **Master of Business Administration (MBA)** | University of Chicago Booth School of Business
-**Bachelor of Science in Economics** | Northwestern University
+**B.S. in Industrial Engineering** | Purdue University
+
+---
+
+## AWARDS & BOARD MEMBERSHIPS
+
+- **Member of the Board**, Chicago Council on Global Affairs
+- **Operations Leader of the Year (2019)**, Global Business Review
+- **Certified Supply Chain Professional (CSCP)**, APICS
 `
   },
   {
     id: 'minimal',
     name: 'Minimalist Tech',
-    description: 'Clean and concise, ideal for software developers and designers.',
-    content: `# Alex Rivera
-**Software Engineer**
+    description: 'A clean, high-density layout optimized for developers, designers, and tech professionals.',
+    content: `# ALEX RIVERA
+**Senior Full-Stack Engineer**
 
-[GitHub](https://github.com/example) • [Portfolio](https://example.com) • [Email](mailto:alex@rivera.dev)
-
----
-
-## Stack
-- **Languages:** TypeScript, Rust, Python, Go
-- **Frontend:** React, Next.js, Tailwind CSS
-- **Backend:** Node.js, PostgreSQL, Redis, Docker
-- **Tools:** Git, AWS, Terraform, CI/CD
+[alex@rivera.dev](mailto:alex@rivera.dev) • [rivera.dev](https://rivera.dev) • [GitHub](https://github.com/arivera)
 
 ---
 
-## Experience
+## STACK
+- **Languages:** TypeScript, Rust, Python, Go, C++
+- **Frontend:** React, Next.js, Tailwind CSS, WebAssembly
+- **Backend:** Node.js, PostgreSQL, Redis, gRPC, Docker
+- **Cloud:** AWS (Lambda, EKS, RDS), Terraform, GitHub Actions
 
-### Senior Software Engineer | TechFlow | 2021 – Present
-- Architected a distributed microservices platform handling 1M+ req/day.
-- Reduced cloud infrastructure costs by 30% through container optimization.
+---
 
-### Full Stack Developer | StartupInc | 2019 – 2021
-- Built the MVP for a fintech application using React and GraphQL.
-- Implemented real-time data visualization for 50k active users.
+## EXPERIENCE
+
+### Lead Engineer | CloudScale AI | 2021 – Present
+- Built a real-time data ingestion pipeline handling **2.5M events/second** using Rust and Kafka.
+- Reduced frontend bundle sizes by **60%** by migrating to a custom micro-frontend architecture.
+- Mentored a team of 8 engineers, establishing CI/CD best practices and 95% test coverage.
+
+### Software Engineer | FinTech Flow | 2018 – 2021
+- Developed core transaction ledger using Node.js and PostgreSQL with strict ACID compliance.
+- Implemented a GraphQL API layer that improved mobile app performance by **40%**.
+- Lead the migration from a monolith to Kubernetes-based microservices.
 
 <!-- page-break -->
 
-## Projects
+## PROJECTS
 
-### OpenSource Project A
-A high-performance CLI tool built in Rust.
-- 2k+ Stars on GitHub.
-- Used by 100+ production teams.
+### OpenSource GraphDB
+A lightweight, high-performance graph database built in Rust.
+- **5.2k Stars** on GitHub.
+- Implemented a custom storage engine using B+ trees.
+
+### CodeFlow CLI
+Developer tool for automating local environment setup.
+- **10k+ downloads** on NPM.
+- Supports Docker, Nix, and Homebrew integrations.
 
 ---
 
-## Education
-**B.S. Computer Science** | Stanford University
+## EDUCATION
+**B.S. Computer Science** | University of Waterloo | 2014 – 2018
 `
   },
   {
     id: 'executive',
     name: 'Executive Portfolio',
-    description: 'Bold, two-column style for high-impact visual hierarchy.',
-    content: `# SARAH CONNOR
-## Project Management Director
+    description: 'A high-impact, visual hierarchy design for directors, consultants, and project leads.',
+    content: `# SARAH T. CONNOR
+## Project Management Director | PMP® | Certified Scrum Master®
 
 ---
 
-### PROFILE
-Senior Project Director with extensive experience in delivering complex infrastructure and technology projects. Certified PMP with a track record of leading teams of 50+ members.
+### 🎯 PROFESSIONAL PROFILE
+Strategic Project Director with 15+ years of success in delivering complex, multi-million dollar infrastructure and IT projects. Expert in aligning technical execution with business objectives to drive ROI.
 
 ---
 
-### EXPERIENCE
+### 🛠 TECHNICAL EXPERTISE
 
-**Director of Project Management** | BuildWise | 2017 – Present
-- Oversaw $200M portfolio of infrastructure projects.
-- Implemented enterprise-wide project tracking system using Agile/Scrum.
+| Domain | Proficiency |
+|---|---|
+| **Methodologies** | Agile, Waterfall, Scrum, Kanban, Lean |
+| **Tools** | Jira, Asana, MS Project, Smartsheet, Tableau |
+| **Compliance** | ISO 9001, GDPR, HIPAA, SOC2 |
+| **Strategy** | Risk Mitigation, Stakeholder Management, Budgeting |
 
-**Senior Project Manager** | CityDevelop | 2012 – 2017
-- Delivered downtown revitalization project 3 months ahead of schedule.
-- Negotiated contracts with 20+ vendors, saving $2M in procurement costs.
+---
+
+### 📈 KEY ACHIEVEMENTS
+
+**Director of Project Delivery | BuildWise Solutions | 2017 – Present**
+- **$250M Portfolio:** Oversee 50+ simultaneous projects across 3 continents.
+- **Efficiency Boost:** Implemented a new resource allocation model, increasing throughput by 35%.
+- **Cost Savings:** Renegotiated vendor contracts, saving the firm $4.2M over 3 years.
 
 <!-- page-break -->
 
-### SKILLS
-- Agile/Scrum Methodology
-- Risk Management
-- Stakeholder Engagement
-- Budget Forecasting
-- Lean Construction
+**Senior Project Manager | CityDevelop Tech | 2012 – 2017**
+- **On-Time Delivery:** Completed the "Smart City" IoT rollout 4 months ahead of schedule.
+- **Team Leadership:** Managed a cross-functional team of 60+ engineers, designers, and contractors.
+- **Quality Assurance:** Reduced post-launch bug reports by 55% through rigorous QA integration.
 
 ---
 
-### EDUCATION
-**B.A. Architecture** | Yale University
-**PMP Certification** | Project Management Institute
+### 🎓 EDUCATION & CREDENTIALS
+
+- **B.A. in Management & Technology** | Yale University
+- **PMP® Certification** | Project Management Institute
+- **Executive Leadership Program** | Wharton School of Business
 `
   }
 ];
