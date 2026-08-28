@@ -43,7 +43,8 @@ import {
   Strikethrough,
   Quote,
   Code,
-  Layers
+  Layers,
+  Baseline
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -58,6 +59,15 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuSubContent
 } from '@/components/ui/dropdown-menu';
+import { 
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -85,7 +95,33 @@ interface Document {
   updatedAt: number;
   isFavorite: boolean;
   templateId?: string;
+  fontFamily?: string;
 }
+
+const DOCUMENT_FONTS = [
+  { group: "Serif (Word Style)", fonts: [
+    { name: "Times New Roman", value: "Tinos, serif" },
+    { name: "Georgia", value: "Gelasio, serif" },
+    { name: "Garamond", value: "'EB Garamond', serif" },
+    { name: "Cambria", value: "Caladea, serif" },
+    { name: "Book Antiqua", value: "Spectral, serif" },
+  ]},
+  { group: "Sans-Serif (Word Style)", fonts: [
+    { name: "Arial", value: "Arimo, sans-serif" },
+    { name: "Calibri / Segoe UI", value: "Inter, sans-serif" },
+    { name: "Verdana", value: "'Varela Round', sans-serif" },
+    { name: "Tahoma", value: "Hind, sans-serif" },
+    { name: "Century Gothic", value: "Montserrat, sans-serif" },
+    { name: "Franklin Gothic", value: "'Libre Franklin', sans-serif" },
+  ]},
+  { group: "Monospace", fonts: [
+    { name: "Courier New", value: "Cousine, monospace" },
+    { name: "Consolas", value: "'Fira Code', monospace" },
+  ]},
+  { group: "Script / Formal", fonts: [
+    { name: "Handwriting", value: "Caveat, cursive" },
+  ]}
+];
 
 export default function FormaTextApp() {
   // --- State ---
@@ -251,7 +287,8 @@ export default function FormaTextApp() {
         title: 'Welcome to FormaText',
         content: '# Welcome to FormaText\n\nWrite Markdown. See it come alive.\n\n## Features\n- **Monaco Editor** integration\n- **GFM** Support\n- **Math** equations: $E=mc^2$\n- **Task Lists**\n- **Command Palette** (Cmd+K)\n\n[!NOTE]\nThis is a GitHub-style alert!',
         updatedAt: Date.now(),
-        isFavorite: false
+        isFavorite: false,
+        fontFamily: "Inter, sans-serif"
       };
       setDocuments([initialDoc]);
       setActiveDocId('welcome');
@@ -310,6 +347,11 @@ export default function FormaTextApp() {
     setDocuments(prev => prev.map(d => d.id === activeDocId ? { ...d, content: val, updatedAt: Date.now() } : d));
   };
 
+  const updateFont = (fontFamily: string) => {
+    if (!activeDocId) return;
+    setDocuments(prev => prev.map(d => d.id === activeDocId ? { ...d, fontFamily, updatedAt: Date.now() } : d));
+  };
+
   const createNewDoc = (title = 'Untitled', content = '', templateId?: string) => {
     const newDoc: Document = {
       id: Math.random().toString(36).substr(2, 9),
@@ -317,7 +359,8 @@ export default function FormaTextApp() {
       content: content,
       updatedAt: Date.now(),
       isFavorite: false,
-      templateId
+      templateId,
+      fontFamily: "Inter, sans-serif"
     };
     setDocuments(prev => [newDoc, ...prev]);
     setActiveDocId(newDoc.id);
@@ -582,6 +625,25 @@ export default function FormaTextApp() {
             <div className={`h-full flex flex-col bg-background ${isZenMode ? 'main-content' : ''}`}>
               {!isZenMode && (
                 <div className="no-print h-9 border-b flex items-center px-4 gap-1 bg-muted/10 shrink-0">
+                  <Select value={activeDoc?.fontFamily || "Inter, sans-serif"} onValueChange={updateFont}>
+                    <SelectTrigger className="h-7 w-[160px] text-[10px] bg-transparent border-none focus:ring-0">
+                      <Baseline className="w-3 h-3 mr-2 text-muted-foreground" />
+                      <SelectValue placeholder="Font Family" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {DOCUMENT_FONTS.map(group => (
+                        <SelectGroup key={group.group}>
+                          <SelectLabel className="text-[9px] uppercase tracking-widest text-muted-foreground">{group.group}</SelectLabel>
+                          {group.fonts.map(font => (
+                            <SelectItem key={font.value} value={font.value} className="text-xs">
+                              <span style={{ fontFamily: font.value }}>{font.name}</span>
+                            </SelectItem>
+                          ))}
+                        </SelectGroup>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Separator orientation="vertical" className="h-3 mx-1" />
                   <Button variant="ghost" size="xs" className="h-6 w-6" onClick={() => insertMarkdown('bold')} title="Bold (Ctrl+B)"><Bold className="w-3.5 h-3.5" /></Button>
                   <Button variant="ghost" size="xs" className="h-6 w-6" onClick={() => insertMarkdown('italic')} title="Italic (Ctrl+I)"><Italic className="w-3.5 h-3.5" /></Button>
                   <Button variant="ghost" size="xs" className="h-6 w-6" onClick={() => insertMarkdown('code')} title="Inline Code"><Code className="w-3.5 h-3.5" /></Button>
@@ -653,6 +715,7 @@ export default function FormaTextApp() {
                         "preview-content max-w-3xl mx-auto px-8 py-12 md:px-12 md:py-20 text-foreground dark:text-slate-100 print:text-black print:py-0 print:px-0",
                         activeDoc?.templateId && `resume-${activeDoc.templateId}`
                       )}
+                      style={{ fontFamily: activeDoc?.fontFamily || 'Inter, sans-serif' }}
                       dangerouslySetInnerHTML={{ __html: renderMarkdown(activeDoc?.content || '') }}
                     />
                   </ScrollArea>

@@ -58,7 +58,6 @@
 }
 
 /* CRITICAL: Fix Monaco Cursor/Selection Offset */
-/* We must force a monospace font and disable all character variants that might change widths */
 .monaco-editor,
 .monaco-editor .inputarea.ime-input,
 .monaco-editor .view-line,
@@ -86,7 +85,6 @@
 
 /* Preview Styles */
 .preview-content {
-  font-family: 'Inter', system-ui, sans-serif;
   line-height: 1.6;
 }
 
@@ -107,20 +105,21 @@
 
 /* Modern Academic */
 .resume-modern {
-  border-top: 8px solid hsl(var(--primary));
+  border-top: 8px solid #3b82f6; /* Electric Blue Accent */
   padding-top: 2.5rem;
 }
 .resume-modern h1 {
   @apply text-4xl font-black uppercase tracking-tighter mb-2 mt-0 border-none text-left;
+  font-family: 'Inter', sans-serif;
 }
 .resume-modern h2 {
-  @apply text-sm font-black uppercase tracking-[0.25em] text-primary border-b-2 border-primary/20 pb-1 mt-10 mb-5;
+  @apply text-xs font-black uppercase tracking-[0.25em] text-blue-600 border-b border-blue-100 pb-1 mt-10 mb-5;
 }
 .resume-modern h3 {
   @apply text-base font-bold mb-1 mt-5;
 }
 .resume-modern p, .resume-modern li {
-  @apply text-sm leading-relaxed mb-3;
+  @apply text-[13px] leading-relaxed mb-3;
 }
 
 /* Classic Professional */
@@ -128,16 +127,16 @@
   text-align: center;
 }
 .resume-classic h1 {
-  @apply text-3xl font-serif font-bold uppercase tracking-[0.2em] mb-4 mt-0 border-none text-center;
+  @apply text-3xl font-bold uppercase tracking-[0.2em] mb-4 mt-0 border-none text-center;
 }
 .resume-classic h2 {
-  @apply text-[11px] font-bold uppercase tracking-[0.4em] border-y border-foreground/30 py-2.5 my-10 text-center;
+  @apply text-[10px] font-bold uppercase tracking-[0.3em] border-y border-foreground/20 py-2 my-8 text-center;
 }
 .resume-classic h3 {
   @apply text-sm font-bold text-left mb-1 mt-6;
 }
 .resume-classic p, .resume-classic li {
-  @apply text-sm text-left font-serif leading-relaxed mb-4;
+  @apply text-[13px] text-left leading-relaxed mb-4;
 }
 
 /* Minimalist Tech */
@@ -148,164 +147,65 @@
   @apply text-2xl font-bold mb-1 mt-0 tracking-tight border-none;
 }
 .resume-minimal h2 {
-  @apply text-[10px] font-black uppercase tracking-widest text-muted-foreground border-none pb-0 mt-10 mb-3;
+  @apply text-[9px] font-black uppercase tracking-[0.15em] text-muted-foreground border-none pb-0 mt-8 mb-2;
 }
 .resume-minimal h3 {
-  @apply text-base font-bold mb-1 mt-4;
+  @apply text-[14px] font-bold mb-0.5 mt-4;
 }
 .resume-minimal p, .resume-minimal li {
-  @apply text-[13px] leading-snug mb-2;
+  @apply text-[12px] leading-snug mb-1.5;
 }
 .resume-minimal code {
-  @apply bg-secondary text-secondary-foreground px-1.5 py-0.5 rounded font-mono text-xs;
+  @apply bg-secondary text-secondary-foreground px-1 py-0.5 rounded font-mono text-[10px];
 }
 
 /* Executive Portfolio */
 .resume-executive {
-  border-left: 6px solid #2b3f5d;
+  border-left: 8px solid #1e293b; /* Navy Sidebar Accent */
   padding-left: 2.5rem;
 }
 .resume-executive h1 {
-  @apply text-4xl font-bold mb-1 mt-0 tracking-tight border-none;
-  color: #2b3f5d;
+  @apply text-4xl font-bold mb-1 mt-0 tracking-tight border-none text-slate-800 dark:text-slate-200;
 }
 .resume-executive h2 {
-  @apply text-lg font-bold border-b-[2px] pb-1.5 mt-12 mb-6 uppercase tracking-wider;
-  color: #2b3f5d;
-  border-color: rgba(43, 63, 93, 0.2);
+  @apply text-base font-bold border-b-2 border-slate-200 pb-1.5 mt-10 mb-5 uppercase tracking-wider text-slate-700 dark:text-slate-300;
 }
 .resume-executive h3 {
-  @apply text-base font-bold mb-2 mt-6;
-  color: #354f76;
+  @apply text-[14px] font-bold mb-1 mt-5 text-slate-600 dark:text-slate-400;
 }
 .resume-executive p, .resume-executive li {
-  @apply text-[14px] leading-normal mb-5;
+  @apply text-[13px] leading-normal mb-4;
 }
 .resume-executive table {
-  @apply border-none shadow-none rounded-none overflow-hidden my-8;
+  @apply border-none shadow-none rounded-none overflow-hidden my-6;
 }
 .resume-executive th {
-  background-color: #2b3f5d;
-  @apply text-white font-bold uppercase text-[9px] tracking-widest p-4 text-left border-none;
+  @apply bg-slate-800 text-white font-bold uppercase text-[9px] tracking-widest p-3 text-left border-none;
 }
 .resume-executive td {
-  @apply p-4 border-b text-sm;
-  border-color: #e1e9f2;
+  @apply p-3 border-b border-slate-100 text-[12px];
 }
 
-/* Alerts */
-.alert { @apply p-4 rounded-lg border-l-4 my-6 bg-muted/20; }
-.alert-title { @apply font-bold text-sm mb-1 flex items-center gap-2; }
-.alert-note { @apply border-blue-500 text-blue-700 dark:text-blue-300; }
-.alert-tip { @apply border-green-500 text-green-700 dark:text-green-300; }
-.alert-important { @apply border-purple-500 text-purple-700 dark:text-purple-300; }
-.alert-warning { @apply border-orange-500 text-orange-700 dark:text-orange-300; }
-.alert-caution { @apply border-red-500 text-red-700 dark:text-red-300; }
-
-.header-anchor { @apply no-underline opacity-0 transition-opacity absolute -ml-6 pr-2 text-muted-foreground hover:opacity-100; }
-h1:hover .header-anchor, h2:hover .header-anchor, h3:hover .header-anchor { opacity: 0.5; }
-
-/* Resizable Panels Custom Handles */
-.panel-resize-handle {
-  @apply w-1.5 h-full bg-border hover:bg-primary/30 transition-colors cursor-col-resize relative;
-}
-.panel-resize-handle::after {
-  content: "";
-  @apply absolute left-1/2 -translate-x-1/2 w-[1px] h-8 bg-muted-foreground/20 top-1/2 -translate-y-1/2;
-}
-
-/* Zen Mode */
-.zen-mode .no-zen { display: none !important; }
-.zen-mode .main-content { @apply max-w-4xl mx-auto; }
-
-/* Professional Compact Print Styles */
+/* Print Overrides */
 @media print {
   @page {
-    margin: 0.6in;
+    margin: 0.5in;
     size: auto;
   }
-
-  html, body, 
-  [data-panel-group], 
-  [data-panel],
-  .h-screen, 
-  .flex-col, 
-  .overflow-hidden,
-  main,
-  .preview-container,
-  [data-radix-scroll-area-viewport] {
-    overflow: visible !important;
-    height: auto !important;
-    min-height: 0 !important;
-    display: block !important;
-    position: static !important;
+  
+  body, .preview-content {
     background: white !important;
     color: black !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    border: none !important;
-    width: 100% !important;
+    overflow: visible !important;
+    height: auto !important;
   }
 
-  header, 
-  footer, 
-  aside, 
-  nav, 
-  .no-print, 
-  [data-panel-resize-handle], 
-  .panel-resize-handle, 
-  .editor-panel-wrapper,
-  .sidebar-panel-wrapper,
-  .command-palette, 
-  .toaster,
-  .lucide,
-  [role="dialog"],
-  [data-radix-popper-content-wrapper],
-  .radix-portal,
-  [role="status"],
-  button {
-    display: none !important;
-  }
-
+  /* Force the document font onto the print output */
   .preview-content {
-    display: block !important;
     font-size: 11pt !important;
-    line-height: 1.4 !important;
-    width: 100% !important;
-    max-width: none !important;
-    padding: 0 !important;
-    margin: 0 !important;
-    color: black !important;
   }
 
-  .preview-content h1, 
-  .preview-content h2, 
-  .preview-content h3 { 
-    page-break-after: avoid; 
-    color: black !important;
-    border-color: #eee !important;
-  }
-  
-  .preview-content p, 
-  .preview-content blockquote, 
-  .preview-content li { 
-    orphans: 3; 
-    widows: 3; 
-    margin-bottom: 8pt !important;
-  }
-
-  .preview-content pre { 
-    font-size: 9pt !important; 
-    white-space: pre-wrap !important; 
-    word-break: break-all !important; 
-    page-break-inside: avoid;
-    padding: 8pt !important;
-    background: #fdfdfd !important;
-    border: 1px solid #eee !important;
-  }
-
-  .preview-content table { 
-    page-break-inside: avoid; 
-    border-collapse: collapse !important;
+  .no-print {
+    display: none !important;
   }
 }
