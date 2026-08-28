@@ -1,4 +1,3 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -52,12 +51,21 @@
 
 @layer base {
   * { @apply border-border; }
-  body { @apply bg-background text-foreground antialiased; font-feature-settings: "cv02", "cv03", "cv04", "cv11"; }
+  body { 
+    @apply bg-background text-foreground antialiased; 
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11"; 
+  }
 }
 
-/* Fix Monaco Selection Offset by ensuring mono container resets body font-feature-settings */
-.monaco-editor, .monaco-editor-background, .monaco-editor .inputarea.ime-input {
+/* Fix Monaco Selection and Cursor Offset */
+.monaco-editor, 
+.monaco-editor-background, 
+.monaco-editor .inputarea.ime-input,
+.monaco-editor .view-lines,
+.monaco-editor .view-line {
   font-feature-settings: normal !important;
+  letter-spacing: normal !important;
+  text-rendering: optimizeLegibility !important;
 }
 
 /* Preview Styles */

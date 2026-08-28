@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
@@ -126,15 +125,15 @@ export default function FormaTextApp() {
       syncScroll();
     });
 
-    // Crucial: Re-layout when fonts are loaded to prevent selection offsets
+    // CRITICAL: Ensure layout is recalculated once fonts are ready
     if (typeof document !== 'undefined' && 'fonts' in document) {
       (document as any).fonts.ready.then(() => {
         editor.layout();
       });
     }
 
-    // Sequence of layout calls to handle rendering transitions
-    [50, 200, 500, 1000].forEach(delay => {
+    // Multiple retries for layout to handle dynamic content/hydration
+    [10, 50, 200, 500, 1000].forEach(delay => {
       setTimeout(() => editor.layout(), delay);
     });
   };
@@ -282,7 +281,14 @@ export default function FormaTextApp() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  // Window resize listener to keep Monaco accurate
+  // Recalculate layout whenever editor visibility/mode changes
+  useEffect(() => {
+    if (editorRef.current?.editor) {
+      setTimeout(() => editorRef.current.editor.layout(), 0);
+    }
+  }, [viewMode, isSidebarOpen, isZenMode]);
+
+  // Window resize listener
   useEffect(() => {
     const handleResize = () => {
       if (editorRef.current?.editor) {
@@ -293,7 +299,7 @@ export default function FormaTextApp() {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // Handle Resize Observer for Monaco Container
+  // Resize Observer for Monaco Container
   useEffect(() => {
     if (!editorContainerRef.current) return;
 
@@ -641,6 +647,7 @@ export default function FormaTextApp() {
                     automaticLayout: true,
                     fontFamily: "'Fira Code', monospace",
                     fixedOverflowWidgets: true,
+                    renderLineHighlight: 'all',
                   }}
                 />
               </div>
