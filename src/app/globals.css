@@ -20,7 +20,7 @@
     --accent-foreground: 222 47% 11.2%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
-    --border: 214.3 31.8% 91.4%;
+    --border: 214.3 31.8 91.4%;
     --input: 214.3 31.8% 91.4%;
     --ring: 222 47% 11%;
     --radius: 0.5rem;
@@ -57,15 +57,31 @@
   }
 }
 
-/* Fix Monaco Selection and Cursor Offset */
-.monaco-editor, 
-.monaco-editor-background, 
+/* CRITICAL: Fix Monaco Cursor/Selection Offset */
+/* We must force a monospace font and disable all character variants that might change widths */
+.monaco-editor,
 .monaco-editor .inputarea.ime-input,
+.monaco-editor .view-line,
 .monaco-editor .view-lines,
-.monaco-editor .view-line {
+.monaco-editor .view-line span,
+.monaco-editor .mtk1,
+.monaco-editor .mtk2,
+.monaco-editor .mtk3,
+.monaco-editor .mtk4,
+.monaco-editor .mtk5,
+.monaco-editor .mtk6,
+.monaco-editor .mtk7,
+.monaco-editor .mtk8,
+.monaco-editor .mtk9 {
+  font-family: 'Fira Code', monospace !important;
   font-feature-settings: normal !important;
+  font-variant-ligatures: none !important;
   letter-spacing: normal !important;
-  text-rendering: optimizeLegibility !important;
+  text-rendering: optimizeSpeed !important;
+}
+
+.monaco-editor-background {
+  background-color: transparent !important;
 }
 
 /* Preview Styles */
@@ -91,7 +107,8 @@
 
 /* Modern Academic */
 .resume-modern {
-  @apply border-t-[8px] border-primary pt-10;
+  border-top: 8px solid hsl(var(--primary));
+  padding-top: 2.5rem;
 }
 .resume-modern h1 {
   @apply text-4xl font-black uppercase tracking-tighter mb-2 mt-0 border-none text-left;
@@ -122,9 +139,6 @@
 .resume-classic p, .resume-classic li {
   @apply text-sm text-left font-serif leading-relaxed mb-4;
 }
-.resume-classic hr {
-  @apply my-8 border-t border-foreground/10;
-}
 
 /* Minimalist Tech */
 .resume-minimal {
@@ -148,16 +162,21 @@
 
 /* Executive Portfolio */
 .resume-executive {
-  @apply border-l-[6px] border-navy-800 pl-10;
+  border-left: 6px solid #2b3f5d;
+  padding-left: 2.5rem;
 }
 .resume-executive h1 {
-  @apply text-4xl font-bold text-navy-800 dark:text-navy-300 mb-1 mt-0 tracking-tight border-none;
+  @apply text-4xl font-bold mb-1 mt-0 tracking-tight border-none;
+  color: #2b3f5d;
 }
 .resume-executive h2 {
-  @apply text-lg font-bold text-navy-800 dark:text-navy-300 border-b-[2px] border-navy-800/20 pb-1.5 mt-12 mb-6 uppercase tracking-wider;
+  @apply text-lg font-bold border-b-[2px] pb-1.5 mt-12 mb-6 uppercase tracking-wider;
+  color: #2b3f5d;
+  border-color: rgba(43, 63, 93, 0.2);
 }
 .resume-executive h3 {
-  @apply text-base font-bold text-navy-700 dark:text-navy-400 mb-2 mt-6;
+  @apply text-base font-bold mb-2 mt-6;
+  color: #354f76;
 }
 .resume-executive p, .resume-executive li {
   @apply text-[14px] leading-normal mb-5;
@@ -166,10 +185,12 @@
   @apply border-none shadow-none rounded-none overflow-hidden my-8;
 }
 .resume-executive th {
-  @apply bg-navy-800 text-white font-bold uppercase text-[9px] tracking-widest p-4 text-left border-none;
+  background-color: #2b3f5d;
+  @apply text-white font-bold uppercase text-[9px] tracking-widest p-4 text-left border-none;
 }
 .resume-executive td {
-  @apply p-4 border-b border-navy-100 dark:border-navy-900 text-sm;
+  @apply p-4 border-b text-sm;
+  border-color: #e1e9f2;
 }
 
 /* Alerts */
@@ -286,14 +307,5 @@ h1:hover .header-anchor, h2:hover .header-anchor, h3:hover .header-anchor { opac
   .preview-content table { 
     page-break-inside: avoid; 
     border-collapse: collapse !important;
-  }
-
-  .resume-executive {
-    border-left-width: 4pt !important;
-    padding-left: 20pt !important;
-  }
-  
-  .resume-modern {
-    border-top-width: 5pt !important;
   }
 }

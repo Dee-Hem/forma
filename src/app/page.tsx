@@ -59,11 +59,6 @@ import {
   DropdownMenuSubContent
 } from '@/components/ui/dropdown-menu';
 import { useToast } from '@/hooks/use-toast';
-import { 
-  aiAutocompletion, 
-  aiTextRephrasing, 
-  summarizeText 
-} from '@/ai/flows';
 import { Badge } from '@/components/ui/badge';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -125,17 +120,27 @@ export default function FormaTextApp() {
       syncScroll();
     });
 
-    // CRITICAL: Ensure layout is recalculated once fonts are ready
+    // CRITICAL: Ensure layout is recalculated once fonts are ready to avoid cursor offset
     if (typeof document !== 'undefined' && 'fonts' in document) {
       (document as any).fonts.ready.then(() => {
         editor.layout();
       });
     }
 
-    // Multiple retries for layout to handle dynamic content/hydration
-    [10, 50, 200, 500, 1000].forEach(delay => {
-      setTimeout(() => editor.layout(), delay);
+    // Multiple layout retries to handle font rendering delays and dynamic shifts
+    [50, 200, 500, 1000].forEach(delay => {
+      setTimeout(() => {
+        if (editor) editor.layout();
+      }, delay);
     });
+
+    // Sync layout on resize
+    const observer = new ResizeObserver(() => {
+      editor.layout();
+    });
+    if (editorContainerRef.current) {
+      observer.observe(editorContainerRef.current);
+    }
   };
 
   const syncScroll = useCallback(() => {
@@ -281,38 +286,6 @@ export default function FormaTextApp() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  // Recalculate layout whenever editor visibility/mode changes
-  useEffect(() => {
-    if (editorRef.current?.editor) {
-      setTimeout(() => editorRef.current.editor.layout(), 0);
-    }
-  }, [viewMode, isSidebarOpen, isZenMode]);
-
-  // Window resize listener
-  useEffect(() => {
-    const handleResize = () => {
-      if (editorRef.current?.editor) {
-        editorRef.current.editor.layout();
-      }
-    };
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
-
-  // Resize Observer for Monaco Container
-  useEffect(() => {
-    if (!editorContainerRef.current) return;
-
-    const observer = new ResizeObserver(() => {
-      if (editorRef.current?.editor) {
-        editorRef.current.editor.layout();
-      }
-    });
-
-    observer.observe(editorContainerRef.current);
-    return () => observer.disconnect();
-  }, [isMounted]);
-
   useEffect(() => {
     if (isMounted) {
       localStorage.setItem('formatext_docs', JSON.stringify(documents));
@@ -363,7 +336,7 @@ export default function FormaTextApp() {
     document.documentElement.classList.toggle('dark', newTheme === 'dark');
   };
 
-  const handleExport = (format: 'md' | 'html' | 'pdf') => {
+  const handleExport = (format: 'md' | 'pdf') => {
     if (!activeDoc) return;
     if (format === 'md') {
       const blob = new Blob([activeDoc.content], { type: 'text/markdown' });
@@ -508,7 +481,7 @@ export default function FormaTextApp() {
           {/* Sidebar */}
           {isSidebarOpen && !isZenMode && (
             <>
-              <Panel defaultSize={20} minSize={15} maxSize={30} className="no-print bg-card border-r">
+              <Panel defaultSize={20} minSize={15} maxSize={30} className="no-print bg-card border-r sidebar-panel-wrapper">
                 <div className="flex flex-col h-full">
                   <div className="p-3 flex items-center justify-between">
                     <Tabs value={sidebarTab} onValueChange={(v) => setSidebarTab(v as any)} className="w-full">
@@ -575,7 +548,7 @@ export default function FormaTextApp() {
                               className="w-full text-left text-xs py-1.5 px-2 rounded hover:bg-muted/50 truncate text-muted-foreground hover:text-foreground transition-colors"
                               style={{ paddingLeft: `${(item.level - 1) * 12 + 8}px` }}
                               onClick={() => {
-                                if (editorRef.current) {
+                                if (editorRef.current?.editor) {
                                   editorRef.current.editor.revealLineInCenter(item.id + 1);
                                 }
                               }}
@@ -648,6 +621,8 @@ export default function FormaTextApp() {
                     fontFamily: "'Fira Code', monospace",
                     fixedOverflowWidgets: true,
                     renderLineHighlight: 'all',
+                    fontLigatures: false,
+                    letterSpacing: 0,
                   }}
                 />
               </div>
