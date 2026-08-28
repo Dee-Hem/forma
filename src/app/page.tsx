@@ -112,12 +112,51 @@ export default function FormaTextApp() {
   const { toast } = useToast();
   const previewRef = useRef<HTMLDivElement>(null);
   const editorRef = useRef<any>(null);
+  const editorContainerRef = useRef<HTMLDivElement>(null);
+  const isSyncing = useRef(false);
 
   const activeDoc = documents.find(d => d.id === activeDocId);
+
+  // --- Scroll Sync Logic ---
+  const syncScroll = useCallback(() => {
+    if (!editorRef.current?.editor || !previewRef.current || isSyncing.current) return;
+    
+    const editor = editorRef.current.editor;
+    const preview = previewRef.current;
+    const viewport = preview.closest('[data-radix-scroll-area-viewport]');
+    
+    if (!viewport) return;
+
+    isSyncing.current = true;
+    
+    const scrollHeight = editor.getScrollHeight();
+    const scrollTop = editor.getScrollTop();
+    const height = editor.getLayoutInfo().height;
+    
+    const maxScroll = scrollHeight - height;
+    if (maxScroll > 0) {
+      const percentage = scrollTop / maxScroll;
+      const maxPreviewScroll = viewport.scrollHeight - viewport.clientHeight;
+      viewport.scrollTop = percentage * maxPreviewScroll;
+    }
+
+    // Use a small timeout or requestAnimationFrame to clear the lock
+    requestAnimationFrame(() => {
+      isSyncing.current = false;
+    });
+  }, []);
 
   // --- Monaco Helpers ---
   const handleEditorDidMount = (editor: any, monaco: any) => {
     editorRef.current = { editor, monaco };
+    
+    // Attach scroll listener
+    editor.onDidScrollChange(() => {
+      syncScroll();
+    });
+
+    // Ensure initial layout is correct
+    setTimeout(() => editor.layout(), 100);
   };
 
   const insertMarkdown = (type: string) => {
@@ -180,7 +219,7 @@ export default function FormaTextApp() {
     editor.focus();
   };
 
-  // --- Persistence ---
+  // --- Persistence & Lifecycle ---
   useEffect(() => {
     setIsMounted(true);
     const savedDocs = localStorage.getItem('formatext_docs');
@@ -235,6 +274,20 @@ export default function FormaTextApp() {
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
+
+  // Handle Resize Observer for Monaco
+  useEffect(() => {
+    if (!editorContainerRef.current) return;
+
+    const observer = new ResizeObserver(() => {
+      if (editorRef.current?.editor) {
+        editorRef.current.editor.layout();
+      }
+    });
+
+    observer.observe(editorContainerRef.current);
+    return () => observer.disconnect();
+  }, [isMounted]);
 
   useEffect(() => {
     if (isMounted) {
@@ -524,6 +577,11 @@ export default function FormaTextApp() {
             defaultSize={viewMode === 'editor' ? 100 : viewMode === 'preview' ? 0 : 40} 
             minSize={0}
             className="editor-panel-wrapper"
+            onResize={() => {
+              if (editorRef.current?.editor) {
+                editorRef.current.editor.layout();
+              }
+            }}
           >
             <div className={`h-full flex flex-col bg-background ${isZenMode ? 'main-content' : ''}`}>
               {!isZenMode && (
@@ -545,7 +603,10 @@ export default function FormaTextApp() {
                 </div>
               )}
               
-              <div className="flex-1 relative overflow-hidden print:hidden">
+              <div 
+                ref={editorContainerRef}
+                className="flex-1 relative overflow-hidden print:hidden"
+              >
                 <Editor
                   height="100%"
                   theme={theme === 'dark' ? 'vs-dark' : 'light'}
