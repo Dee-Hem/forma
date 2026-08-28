@@ -28,11 +28,7 @@ const md = new MarkdownIt({
   }
 })
   .use(anchor, {
-    permalink: anchor.permalink.ariaHidden({
-      placement: 'before',
-      symbol: '#',
-      class: 'header-anchor',
-    })
+    permalink: false, // Disable the permalink symbol (#) to keep resumes professional
   })
   .use(footnote)
   .use(taskLists, { label: true })
