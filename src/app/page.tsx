@@ -99,27 +99,40 @@ interface Document {
 }
 
 const DOCUMENT_FONTS = [
-  { group: "Serif (Word Style)", fonts: [
+  { group: "Serif (Professional)", fonts: [
     { name: "Times New Roman", value: "Tinos, serif" },
     { name: "Georgia", value: "Gelasio, serif" },
     { name: "Garamond", value: "'EB Garamond', serif" },
-    { name: "Cambria", value: "Caladea, serif" },
-    { name: "Book Antiqua", value: "Spectral, serif" },
+    { name: "Cambria / Caladea", value: "Caladea, serif" },
+    { name: "Palatino / Book Antiqua", value: "Spectral, serif" },
+    { name: "Didot / Constantia", value: "'Playfair Display', serif" },
+    { name: "Bookman Old Style", value: "Lora, serif" },
+    { name: "Rockwell", value: "Arvo, serif" },
   ]},
-  { group: "Sans-Serif (Word Style)", fonts: [
+  { group: "Sans-Serif (Modern)", fonts: [
     { name: "Arial", value: "Arimo, sans-serif" },
     { name: "Calibri / Segoe UI", value: "Inter, sans-serif" },
     { name: "Verdana", value: "'Varela Round', sans-serif" },
     { name: "Tahoma", value: "Hind, sans-serif" },
     { name: "Century Gothic", value: "Montserrat, sans-serif" },
-    { name: "Franklin Gothic", value: "'Libre Franklin', sans-serif" },
+    { name: "Franklin Gothic / Trebuchet", value: "'Libre Franklin', sans-serif" },
+    { name: "Gill Sans", value: "Lato, sans-serif" },
+    { name: "Corbel / Candara", value: "'Noto Sans', sans-serif" },
   ]},
   { group: "Monospace", fonts: [
     { name: "Courier New", value: "Cousine, monospace" },
     { name: "Consolas", value: "'Fira Code', monospace" },
+    { name: "Lucida Console", value: "'Fira Code', monospace" },
   ]},
-  { group: "Script / Formal", fonts: [
-    { name: "Handwriting", value: "Caveat, cursive" },
+  { group: "Script / Decorative", fonts: [
+    { name: "Lucida Handwriting", value: "Caveat, cursive" },
+    { name: "Brush Script", value: "Pacifico, cursive" },
+    { name: "Segoe Script", value: "Sacramento, cursive" },
+  ]},
+  { group: "Display / Heading", fonts: [
+    { name: "Impact", value: "Anton, sans-serif" },
+    { name: "Copperplate", value: "Cinzel, serif" },
+    { name: "Bahnschrift", value: "'Roboto Condensed', sans-serif" },
   ]}
 ];
 
@@ -626,14 +639,14 @@ export default function FormaTextApp() {
               {!isZenMode && (
                 <div className="no-print h-9 border-b flex items-center px-4 gap-1 bg-muted/10 shrink-0">
                   <Select value={activeDoc?.fontFamily || "Inter, sans-serif"} onValueChange={updateFont}>
-                    <SelectTrigger className="h-7 w-[160px] text-[10px] bg-transparent border-none focus:ring-0">
+                    <SelectTrigger className="h-7 w-[180px] text-[10px] bg-transparent border-none focus:ring-0">
                       <Baseline className="w-3 h-3 mr-2 text-muted-foreground" />
                       <SelectValue placeholder="Font Family" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="max-h-96">
                       {DOCUMENT_FONTS.map(group => (
                         <SelectGroup key={group.group}>
-                          <SelectLabel className="text-[9px] uppercase tracking-widest text-muted-foreground">{group.group}</SelectLabel>
+                          <SelectLabel className="text-[9px] uppercase tracking-widest text-muted-foreground px-4 py-2">{group.group}</SelectLabel>
                           {group.fonts.map(font => (
                             <SelectItem key={font.value} value={font.value} className="text-xs">
                               <span style={{ fontFamily: font.value }}>{font.name}</span>
