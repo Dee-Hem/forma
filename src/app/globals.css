@@ -171,14 +171,13 @@
   @apply p-4 border-b border-slate-100 text-[13px];
 }
 
-/* PRINT OVERRIDES - FIXED MULTI-PAGE EXPORT */
+/* PRINT OVERRIDES - FIXED PAGINATION AND UI HIDING */
 @media print {
   @page {
     margin: 0.75in;
     size: letter;
   }
   
-  /* Kill all screen height constraints and hidden overflows */
   html, body {
     height: auto !important;
     min-height: 0 !important;
@@ -189,20 +188,7 @@
     padding: 0 !important;
   }
 
-  /* Hide all UI elements */
-  .no-print, 
-  header, 
-  footer, 
-  .editor-panel-wrapper, 
-  .panel-resize-handle, 
-  .sidebar-panel-wrapper,
-  [role="tablist"],
-  [data-sidebar],
-  button {
-    display: none !important;
-  }
-
-  /* Flatten all flex/grid containers for natural page flow */
+  /* Flatten all layout containers first */
   div.h-screen, 
   main, 
   [data-panel-group],
@@ -221,6 +207,26 @@
     padding: 0 !important;
   }
 
+  /* CRITICAL: Strict UI hiding that wins the cascade */
+  .no-print, 
+  .sidebar-panel-wrapper,
+  .editor-panel-wrapper,
+  .panel-resize-handle,
+  header, 
+  footer, 
+  [role="tablist"],
+  [data-sidebar],
+  button,
+  .toaster,
+  .dropdown-menu {
+    display: none !important;
+    visibility: hidden !important;
+    height: 0 !important;
+    width: 0 !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+  }
+
   .preview-content {
     display: block !important;
     width: 100% !important;
@@ -233,7 +239,6 @@
     overflow: visible !important;
   }
 
-  /* Ensure headings and content don't break at the very top/bottom */
   h1, h2, h3 {
     page-break-after: avoid;
     page-break-inside: avoid;
@@ -247,15 +252,5 @@
   a {
     text-decoration: none !important;
     color: black !important;
-  }
-
-  /* Re-apply template accents for print */
-  .resume-executive {
-    border-left-width: 6pt !important;
-    padding-left: 20pt !important;
-  }
-  
-  .resume-modern {
-    border-top-width: 8pt !important;
   }
 }
