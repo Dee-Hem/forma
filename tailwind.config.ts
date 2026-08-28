@@ -18,6 +18,19 @@ export default {
       colors: {
         background: 'hsl(var(--background))',
         foreground: 'hsl(var(--foreground))',
+        navy: {
+          50: '#f2f5f9',
+          100: '#e1e9f2',
+          200: '#c8d7e8',
+          300: '#a1bdd9',
+          400: '#739bc4',
+          500: '#537caf',
+          600: '#416292',
+          700: '#354f76',
+          800: '#2b3f5d',
+          900: '#25354e',
+          950: '#192233',
+        },
         card: {
           DEFAULT: 'hsl(var(--card))',
           foreground: 'hsl(var(--card-foreground))',

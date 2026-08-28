@@ -1,3 +1,4 @@
+
 export interface ResumeTemplate {
   id: string;
   name: string;
@@ -18,8 +19,6 @@ export const RESUME_TEMPLATES: ResumeTemplate[] = [
 
 ---
 
-> "Exploring the intersection of neural networks and semantic evolution in natural language."
-
 ## EDUCATION
 
 **Ph.D. in Computer Science** | MIT | 2018 – 2022
@@ -28,8 +27,6 @@ export const RESUME_TEMPLATES: ResumeTemplate[] = [
 
 **M.Sc. in Linguistics** | Stanford University | 2016 – 2018
 - Focus: Formal Semantics and Syntax
-
----
 
 ## PUBLICATIONS
 
@@ -51,14 +48,10 @@ export const RESUME_TEMPLATES: ResumeTemplate[] = [
 - Advanced Algorithms
 - Intro to Machine Learning
 
----
-
 ## RESEARCH GRANTS
 
 - **NSF Grant #88219** ($250,000): "Preserving Endangered Dialects through AI."
 - **Google Research Award** ($50,000): "Multilingual Embedding Space Optimization."
-
----
 
 ## TECHNICAL SKILLS
 
@@ -77,19 +70,13 @@ export const RESUME_TEMPLATES: ResumeTemplate[] = [
 123 Executive Plaza, Chicago, IL | (312) 555-0100 | m.thorne@corporate.com
 [LinkedIn](https://linkedin.com/in/marcus-thorne)
 
----
-
 ## EXECUTIVE SUMMARY
 Visionary Operations Executive with over 20 years of experience leading multi-national teams in the manufacturing and logistics sectors. Proven track record of increasing operational efficiency by up to 40% while reducing overhead costs by $15M+ annually. Expert in Lean Six Sigma, global supply chain optimization, and strategic turnarounds.
-
----
 
 ## CORE COMPETENCIES
 - **Strategic Planning:** P&L Management, M&A Integration, Market Expansion
 - **Operational Excellence:** Lean Manufacturing, Six Sigma Black Belt, Kaizen
 - **Leadership:** Change Management, Cross-functional Team Building, Talent Mentoring
-
----
 
 ## PROFESSIONAL EXPERIENCE
 
@@ -103,14 +90,10 @@ Visionary Operations Executive with over 20 years of experience leading multi-na
 - Reduced inventory holding costs by 18% through the implementation of a Just-In-Time (JIT) system.
 - Mentored a team of 15 managers, 4 of whom were promoted to VP roles within the company.
 
----
-
 ## EDUCATION
 
 **Master of Business Administration (MBA)** | University of Chicago Booth School of Business
 **B.S. in Industrial Engineering** | Purdue University
-
----
 
 ## AWARDS & BOARD MEMBERSHIPS
 
@@ -128,15 +111,11 @@ Visionary Operations Executive with over 20 years of experience leading multi-na
 
 [alex@rivera.dev](mailto:alex@rivera.dev) • [rivera.dev](https://rivera.dev) • [GitHub](https://github.com/arivera)
 
----
-
 ## STACK
 - **Languages:** TypeScript, Rust, Python, Go, C++
 - **Frontend:** React, Next.js, Tailwind CSS, WebAssembly
 - **Backend:** Node.js, PostgreSQL, Redis, gRPC, Docker
 - **Cloud:** AWS (Lambda, EKS, RDS), Terraform, GitHub Actions
-
----
 
 ## EXPERIENCE
 
@@ -162,8 +141,6 @@ Developer tool for automating local environment setup.
 - **10k+ downloads** on NPM.
 - Supports Docker, Nix, and Homebrew integrations.
 
----
-
 ## EDUCATION
 **B.S. Computer Science** | University of Waterloo | 2014 – 2018
 `
@@ -175,14 +152,10 @@ Developer tool for automating local environment setup.
     content: `# SARAH T. CONNOR
 ## Project Management Director | PMP® | Certified Scrum Master®
 
----
-
-### 🎯 PROFESSIONAL PROFILE
+### PROFESSIONAL PROFILE
 Strategic Project Director with 15+ years of success in delivering complex, multi-million dollar infrastructure and IT projects. Expert in aligning technical execution with business objectives to drive ROI.
 
----
-
-### 🛠 TECHNICAL EXPERTISE
+### TECHNICAL EXPERTISE
 
 | Domain | Proficiency |
 |---|---|
@@ -191,9 +164,7 @@ Strategic Project Director with 15+ years of success in delivering complex, mult
 | **Compliance** | ISO 9001, GDPR, HIPAA, SOC2 |
 | **Strategy** | Risk Mitigation, Stakeholder Management, Budgeting |
 
----
-
-### 📈 KEY ACHIEVEMENTS
+### KEY ACHIEVEMENTS
 
 **Director of Project Delivery | BuildWise Solutions | 2017 – Present**
 - **$250M Portfolio:** Oversee 50+ simultaneous projects across 3 continents.
@@ -205,9 +176,7 @@ Strategic Project Director with 15+ years of success in delivering complex, mult
 - **Team Leadership:** Managed a cross-functional team of 60+ engineers, designers, and contractors.
 - **Quality Assurance:** Reduced post-launch bug reports by 55% through rigorous QA integration.
 
----
-
-### 🎓 EDUCATION & CREDENTIALS
+### EDUCATION & CREDENTIALS
 
 - **B.A. in Management & Technology** | Yale University
 - **PMP® Certification** | Project Management Institute

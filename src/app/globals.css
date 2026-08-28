@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -72,6 +73,91 @@
 .preview-content table { @apply w-full border-collapse mb-6; }
 .preview-content th, .preview-content td { @apply border p-2 text-sm; }
 .preview-content th { @apply bg-muted/50 font-bold; }
+
+/* Resume Templates Styling */
+
+/* Modern Academic */
+.resume-modern {
+  @apply border-t-[6px] border-primary pt-8;
+}
+.resume-modern h1 {
+  @apply text-4xl font-black uppercase tracking-tighter mb-1 mt-0;
+}
+.resume-modern h2 {
+  @apply text-lg font-bold uppercase tracking-[0.2em] text-primary border-b-2 border-primary/20 pb-1 mt-8 mb-4;
+}
+.resume-modern h3 {
+  @apply text-base font-bold mb-1 mt-4;
+}
+.resume-modern p, .resume-modern li {
+  @apply text-sm leading-relaxed mb-2;
+}
+
+/* Classic Professional */
+.resume-classic {
+  @apply text-center;
+}
+.resume-classic h1 {
+  @apply text-3xl font-serif font-bold uppercase tracking-widest mb-2 mt-0 border-none;
+}
+.resume-classic h2 {
+  @apply text-sm font-bold uppercase tracking-[0.3em] border-y border-foreground/20 py-1.5 my-8 text-center;
+}
+.resume-classic h3 {
+  @apply text-sm font-bold text-left mb-1 mt-4;
+}
+.resume-classic p, .resume-classic li {
+  @apply text-sm text-left font-serif leading-snug mb-3;
+}
+.resume-classic .header-info {
+  @apply text-center text-xs italic text-muted-foreground mb-6;
+}
+
+/* Minimalist Tech */
+.resume-minimal {
+  @apply max-w-2xl mx-auto;
+}
+.resume-minimal h1 {
+  @apply text-2xl font-bold mb-1 mt-0 tracking-tight;
+}
+.resume-minimal h2 {
+  @apply text-xs font-black uppercase tracking-widest text-muted-foreground border-none pb-0 mt-8 mb-2;
+}
+.resume-minimal h3 {
+  @apply text-base font-bold mb-0.5 mt-3;
+}
+.resume-minimal p, .resume-minimal li {
+  @apply text-[13px] leading-normal mb-1.5;
+}
+.resume-minimal code {
+  @apply bg-secondary text-secondary-foreground px-1 py-0 rounded;
+}
+
+/* Executive Portfolio */
+.resume-executive {
+  @apply border-l-[10px] border-navy-800 pl-8;
+}
+.resume-executive h1 {
+  @apply text-4xl font-bold text-navy-800 dark:text-navy-300 mb-0 mt-0 tracking-tight;
+}
+.resume-executive h2 {
+  @apply text-xl font-bold text-navy-800 dark:text-navy-300 border-b-[3px] border-navy-800/30 pb-1 mt-10 mb-5;
+}
+.resume-executive h3 {
+  @apply text-lg font-bold text-navy-700 dark:text-navy-400 mb-1 mt-5;
+}
+.resume-executive p, .resume-executive li {
+  @apply text-[14px] leading-tight mb-4;
+}
+.resume-executive table {
+  @apply border-none shadow-sm rounded-sm overflow-hidden;
+}
+.resume-executive th {
+  @apply bg-navy-800 text-white font-bold uppercase text-[10px] tracking-widest p-3;
+}
+.resume-executive td {
+  @apply p-3 border-navy-100 dark:border-navy-900;
+}
 
 /* Alerts */
 .alert { @apply p-4 rounded-lg border-l-4 my-6 bg-muted/20; }

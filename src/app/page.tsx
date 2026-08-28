@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
@@ -81,6 +82,7 @@ import {
   DialogTrigger
 } from '@/components/ui/dialog';
 import { RESUME_TEMPLATES, ResumeTemplate } from '@/lib/templates';
+import { cn } from '@/lib/utils';
 
 interface Document {
   id: string;
@@ -88,6 +90,7 @@ interface Document {
   content: string;
   updatedAt: number;
   isFavorite: boolean;
+  templateId?: string;
 }
 
 export default function FormaTextApp() {
@@ -257,13 +260,14 @@ export default function FormaTextApp() {
     setDocuments(prev => prev.map(d => d.id === activeDocId ? { ...d, content: val, updatedAt: Date.now() } : d));
   };
 
-  const createNewDoc = (title = 'Untitled', content = '') => {
+  const createNewDoc = (title = 'Untitled', content = '', templateId?: string) => {
     const newDoc: Document = {
       id: Math.random().toString(36).substr(2, 9),
       title: title,
       content: content,
       updatedAt: Date.now(),
-      isFavorite: false
+      isFavorite: false,
+      templateId
     };
     setDocuments(prev => [newDoc, ...prev]);
     setActiveDocId(newDoc.id);
@@ -311,7 +315,7 @@ export default function FormaTextApp() {
   };
 
   const useTemplate = (template: ResumeTemplate) => {
-    createNewDoc(template.name, template.content);
+    createNewDoc(template.name, template.content, template.id);
     setIsTemplatesOpen(false);
     toast({
       title: `${template.name} template loaded`,
@@ -584,7 +588,10 @@ export default function FormaTextApp() {
                   <ScrollArea className="flex-1 print:overflow-visible">
                     <div 
                       ref={previewRef}
-                      className="preview-content max-w-3xl mx-auto px-8 py-12 md:px-12 md:py-20 text-foreground dark:text-slate-100 print:text-black print:py-0 print:px-0"
+                      className={cn(
+                        "preview-content max-w-3xl mx-auto px-8 py-12 md:px-12 md:py-20 text-foreground dark:text-slate-100 print:text-black print:py-0 print:px-0",
+                        activeDoc?.templateId && `resume-${activeDoc.templateId}`
+                      )}
                       dangerouslySetInnerHTML={{ __html: renderMarkdown(activeDoc?.content || '') }}
                     />
                   </ScrollArea>
