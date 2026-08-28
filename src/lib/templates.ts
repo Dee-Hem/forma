@@ -41,8 +41,6 @@ export const RESUME_TEMPLATES: ResumeTemplate[] = [
 - *NeurIPS 2022*: "Transformer-XL for Ancient Text Reconstruction."
 - *ICLR 2021*: "Efficient Tokenization Strategies for Agglutinative Languages."
 
-<!-- page-break -->
-
 ## TEACHING EXPERIENCE
 
 **Adjunct Professor** | Harvard University | 2022 – Present
@@ -100,8 +98,6 @@ Visionary Operations Executive with over 20 years of experience leading multi-na
 - Managed an annual operational budget of $85M, consistently delivering 8% under budget.
 - Led a successful merger integration of three regional competitors, capturing $10M in synergies within 12 months.
 
-<!-- page-break -->
-
 ### Innovate Manufacturing | Director of Supply Chain | 2008 – 2015
 - Developed a global sourcing strategy that mitigated risks during significant market volatility.
 - Reduced inventory holding costs by 18% through the implementation of a Just-In-Time (JIT) system.
@@ -154,8 +150,6 @@ Visionary Operations Executive with over 20 years of experience leading multi-na
 - Implemented a GraphQL API layer that improved mobile app performance by **40%**.
 - Lead the migration from a monolith to Kubernetes-based microservices.
 
-<!-- page-break -->
-
 ## PROJECTS
 
 ### OpenSource GraphDB
@@ -205,8 +199,6 @@ Strategic Project Director with 15+ years of success in delivering complex, mult
 - **$250M Portfolio:** Oversee 50+ simultaneous projects across 3 continents.
 - **Efficiency Boost:** Implemented a new resource allocation model, increasing throughput by 35%.
 - **Cost Savings:** Renegotiated vendor contracts, saving the firm $4.2M over 3 years.
-
-<!-- page-break -->
 
 **Senior Project Manager | CityDevelop Tech | 2012 – 2017**
 - **On-Time Delivery:** Completed the "Smart City" IoT rollout 4 months ahead of schedule.
