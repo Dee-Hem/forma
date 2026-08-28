@@ -57,7 +57,7 @@
   }
 }
 
-/* Monaco Custom Fixes */
+/* Monaco Custom Fixes to avoid cursor offsets */
 .monaco-editor, .monaco-editor .inputarea.ime-input {
   font-family: 'Fira Code', monospace !important;
   font-feature-settings: normal !important;
@@ -90,7 +90,8 @@
   padding-top: 2rem;
 }
 .resume-modern h1 {
-  @apply text-4xl font-black uppercase tracking-widest mb-4 mt-0 border-none text-left;
+  @apply text-4xl font-black uppercase tracking-widest mb-4 mt-0 border-none;
+  text-align: left;
 }
 .resume-modern h2 {
   @apply text-sm font-black uppercase tracking-[0.3em] text-blue-600 border-b border-blue-100 pb-2 mt-10 mb-6;
@@ -107,13 +108,16 @@
   text-align: center;
 }
 .resume-classic h1 {
-  @apply text-4xl font-bold uppercase tracking-[0.25em] mb-6 mt-0 border-none text-center;
+  @apply text-4xl font-bold uppercase tracking-[0.25em] mb-6 mt-0 border-none;
+  text-align: center;
 }
 .resume-classic h2 {
-  @apply text-[11px] font-bold uppercase tracking-[0.4em] border-y border-foreground/20 py-2.5 my-10 text-center;
+  @apply text-[11px] font-bold uppercase tracking-[0.4em] border-y border-foreground/20 py-2.5 my-10;
+  text-align: center;
 }
 .resume-classic h3 {
-  @apply text-base font-bold text-left mb-1.5 mt-8;
+  @apply text-base font-bold mb-1.5 mt-8;
+  text-align: left;
 }
 .resume-classic p, .resume-classic li {
   text-align: left;
@@ -167,67 +171,91 @@
   @apply p-4 border-b border-slate-100 text-[13px];
 }
 
-/* PRINT OVERRIDES */
+/* PRINT OVERRIDES - FIXED MULTI-PAGE EXPORT */
 @media print {
   @page {
     margin: 0.75in;
     size: letter;
   }
   
-  body {
+  /* Kill all screen height constraints and hidden overflows */
+  html, body {
+    height: auto !important;
+    min-height: 0 !important;
+    overflow: visible !important;
     background: white !important;
     color: black !important;
-    overflow: visible !important;
-    height: auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
   }
 
-  .no-print, .editor-panel-wrapper, header, footer, button, [role="tablist"] {
+  /* Hide all UI elements */
+  .no-print, 
+  header, 
+  footer, 
+  .editor-panel-wrapper, 
+  .panel-resize-handle, 
+  .sidebar-panel-wrapper,
+  [role="tablist"],
+  [data-sidebar],
+  button {
     display: none !important;
   }
 
-  main {
+  /* Flatten all flex/grid containers for natural page flow */
+  div.h-screen, 
+  main, 
+  [data-panel-group],
+  [data-panel],
+  .preview-container,
+  .preview-container > div,
+  [data-radix-scroll-area-viewport] {
     display: block !important;
-    overflow: visible !important;
-  }
-
-  .preview-container {
-    width: 100% !important;
     height: auto !important;
+    width: 100% !important;
     position: static !important;
-    border: none !important;
     overflow: visible !important;
+    border: none !important;
+    box-shadow: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
   }
 
   .preview-content {
-    padding: 0 !important;
-    margin: 0 !important;
+    display: block !important;
     width: 100% !important;
     max-width: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
     font-size: 11pt !important;
     color: black !important;
-    background: white !important;
+    background: transparent !important;
     overflow: visible !important;
   }
 
-  .preview-content h1, .preview-content h2, .preview-content h3 {
-    color: black !important;
+  /* Ensure headings and content don't break at the very top/bottom */
+  h1, h2, h3 {
     page-break-after: avoid;
+    page-break-inside: avoid;
+    color: black !important;
   }
 
-  .resume-executive {
-    border-left-width: 6pt !important;
-  }
-  
-  .resume-modern {
-    border-top-width: 8pt !important;
-  }
-
-  table {
+  table, tr, img, blockquote {
     page-break-inside: avoid;
   }
   
   a {
     text-decoration: none !important;
     color: black !important;
+  }
+
+  /* Re-apply template accents for print */
+  .resume-executive {
+    border-left-width: 6pt !important;
+    padding-left: 20pt !important;
+  }
+  
+  .resume-modern {
+    border-top-width: 8pt !important;
   }
 }
