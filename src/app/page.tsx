@@ -648,7 +648,7 @@ export default function FormaTextApp() {
                         <SelectGroup key={group.group}>
                           <SelectLabel className="text-[9px] uppercase tracking-widest text-muted-foreground px-4 py-2">{group.group}</SelectLabel>
                           {group.fonts.map(font => (
-                            <SelectItem key={font.value} value={font.value} className="text-xs">
+                            <SelectItem key={font.name} value={font.value} className="text-xs">
                               <span style={{ fontFamily: font.value }}>{font.name}</span>
                             </SelectItem>
                           ))}
