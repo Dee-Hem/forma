@@ -117,7 +117,28 @@ export default function FormaTextApp() {
 
   const activeDoc = documents.find(d => d.id === activeDocId);
 
-  // --- Scroll Sync Logic ---
+  // --- Monaco Helpers ---
+  const handleEditorDidMount = (editor: any, monaco: any) => {
+    editorRef.current = { editor, monaco };
+    
+    // Attach scroll listener
+    editor.onDidScrollChange(() => {
+      syncScroll();
+    });
+
+    // Crucial: Re-layout when fonts are loaded to prevent selection offsets
+    if (typeof document !== 'undefined' && 'fonts' in document) {
+      (document as any).fonts.ready.then(() => {
+        editor.layout();
+      });
+    }
+
+    // Sequence of layout calls to handle rendering transitions
+    [50, 200, 500, 1000].forEach(delay => {
+      setTimeout(() => editor.layout(), delay);
+    });
+  };
+
   const syncScroll = useCallback(() => {
     if (!editorRef.current?.editor || !previewRef.current || isSyncing.current) return;
     
@@ -140,24 +161,10 @@ export default function FormaTextApp() {
       viewport.scrollTop = percentage * maxPreviewScroll;
     }
 
-    // Use a small timeout or requestAnimationFrame to clear the lock
     requestAnimationFrame(() => {
       isSyncing.current = false;
     });
   }, []);
-
-  // --- Monaco Helpers ---
-  const handleEditorDidMount = (editor: any, monaco: any) => {
-    editorRef.current = { editor, monaco };
-    
-    // Attach scroll listener
-    editor.onDidScrollChange(() => {
-      syncScroll();
-    });
-
-    // Ensure initial layout is correct
-    setTimeout(() => editor.layout(), 100);
-  };
 
   const insertMarkdown = (type: string) => {
     if (!editorRef.current) return;
@@ -275,7 +282,18 @@ export default function FormaTextApp() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  // Handle Resize Observer for Monaco
+  // Window resize listener to keep Monaco accurate
+  useEffect(() => {
+    const handleResize = () => {
+      if (editorRef.current?.editor) {
+        editorRef.current.editor.layout();
+      }
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  // Handle Resize Observer for Monaco Container
   useEffect(() => {
     if (!editorContainerRef.current) return;
 
@@ -552,7 +570,6 @@ export default function FormaTextApp() {
                               style={{ paddingLeft: `${(item.level - 1) * 12 + 8}px` }}
                               onClick={() => {
                                 if (editorRef.current) {
-                                  // Scroll to line in Monaco (approximate)
                                   editorRef.current.editor.revealLineInCenter(item.id + 1);
                                 }
                               }}
@@ -623,6 +640,7 @@ export default function FormaTextApp() {
                     scrollBeyondLastLine: true,
                     automaticLayout: true,
                     fontFamily: "'Fira Code', monospace",
+                    fixedOverflowWidgets: true,
                   }}
                 />
               </div>
