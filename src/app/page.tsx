@@ -97,8 +97,74 @@ export default function FormaTextApp() {
   const isMobile = useIsMobile();
   const { toast } = useToast();
   const previewRef = useRef<HTMLDivElement>(null);
+  const editorRef = useRef<any>(null);
 
   const activeDoc = documents.find(d => d.id === activeDocId);
+
+  // --- Monaco Helpers ---
+  const handleEditorDidMount = (editor: any, monaco: any) => {
+    editorRef.current = { editor, monaco };
+  };
+
+  const insertMarkdown = (type: string) => {
+    if (!editorRef.current) return;
+    const { editor, monaco } = editorRef.current;
+    const selection = editor.getSelection();
+    const model = editor.getModel();
+    const selectedText = model.getValueInRange(selection);
+
+    let newText = '';
+    
+    switch (type) {
+      case 'bold':
+        newText = `**${selectedText || 'bold text'}**`;
+        break;
+      case 'italic':
+        newText = `*${selectedText || 'italic text'}*`;
+        break;
+      case 'code':
+        newText = `\`${selectedText || 'code'}\``;
+        break;
+      case 'quote':
+        newText = `\n> ${selectedText || 'quote'}\n`;
+        break;
+      case 'list':
+        newText = (selectedText || 'item').split('\n').map(l => `- ${l}`).join('\n');
+        break;
+      case 'ordered-list':
+        newText = (selectedText || 'item').split('\n').map((l, i) => `${i + 1}. ${l}`).join('\n');
+        break;
+      case 'task-list':
+        newText = (selectedText || 'item').split('\n').map(l => `- [ ] ${l}`).join('\n');
+        break;
+      case 'link':
+        newText = `[${selectedText || 'link text'}](https://)`;
+        break;
+      case 'image':
+        newText = `![${selectedText || 'alt text'}](https://)`;
+        break;
+      case 'undo':
+        editor.trigger('keyboard', 'undo', null);
+        return;
+      case 'redo':
+        editor.trigger('keyboard', 'redo', null);
+        return;
+      case 'code-block':
+        newText = `\n\`\`\`\n${selectedText || 'code'}\n\`\`\`\n`;
+        break;
+      case 'hr':
+        newText = `\n---\n`;
+        break;
+    }
+
+    editor.executeEdits('toolbar', [{
+      range: selection,
+      text: newText,
+      forceMoveMarkers: true
+    }]);
+    
+    editor.focus();
+  };
 
   // --- Persistence ---
   useEffect(() => {
@@ -116,7 +182,6 @@ export default function FormaTextApp() {
         setActiveDocId(parsed[0].id);
       }
     } else {
-      // Seed initial doc
       const initialDoc: Document = {
         id: 'welcome',
         title: 'Welcome to FormaText',
@@ -143,6 +208,14 @@ export default function FormaTextApp() {
       if ((e.metaKey || e.ctrlKey) && e.key === 's') {
         e.preventDefault();
         handleSave();
+      }
+      if ((e.metaKey || e.ctrlKey) && e.key === 'b') {
+        e.preventDefault();
+        insertMarkdown('bold');
+      }
+      if ((e.metaKey || e.ctrlKey) && e.key === 'i') {
+        e.preventDefault();
+        insertMarkdown('italic');
       }
     };
     window.addEventListener('keydown', handleKeyDown);
@@ -207,15 +280,13 @@ export default function FormaTextApp() {
       a.download = `${activeDoc.title}.md`;
       a.click();
     } else if (format === 'pdf') {
-      // Clear portals and UI state before printing
       setIsCommandOpen(false);
       setTimeout(() => {
         window.print();
-      }, 150);
+      }, 300);
     }
   };
 
-  // --- Rendering Helpers ---
   const generateOutline = (content: string) => {
     const lines = content.split('\n');
     return lines
@@ -256,6 +327,17 @@ export default function FormaTextApp() {
           </div>
 
           <div className="flex items-center gap-1">
+            <div className="hidden md:flex items-center gap-1 mr-2">
+              <Button variant="ghost" size="icon" onClick={() => insertMarkdown('undo')} className="h-8 w-8">
+                <Undo2 className="w-4 h-4" />
+              </Button>
+              <Button variant="ghost" size="icon" onClick={() => insertMarkdown('redo')} className="h-8 w-8">
+                <Redo2 className="w-4 h-4" />
+              </Button>
+            </div>
+            
+            <Separator orientation="vertical" className="h-4 mx-2 hidden md:block" />
+
             <div className="hidden md:flex items-center bg-muted/30 rounded-lg p-0.5 mr-2">
               <Button 
                 variant={viewMode === 'editor' ? 'secondary' : 'ghost'} 
@@ -384,6 +466,9 @@ export default function FormaTextApp() {
                               key={item.id}
                               className="w-full text-left text-xs py-1.5 px-2 rounded hover:bg-muted/50 truncate text-muted-foreground hover:text-foreground transition-colors"
                               style={{ paddingLeft: `${(item.level - 1) * 12 + 8}px` }}
+                              onClick={() => {
+                                // Monaco scroll to line logic could go here
+                              }}
                             >
                               {item.text}
                             </button>
@@ -408,23 +493,21 @@ export default function FormaTextApp() {
           >
             <div className={`h-full flex flex-col bg-background ${isZenMode ? 'main-content' : ''}`}>
               {!isZenMode && (
-                <div className="no-print h-9 border-b flex items-center px-4 gap-4 bg-muted/10 shrink-0">
-                  <div className="flex items-center gap-1">
-                    <Button variant="ghost" size="xs" className="h-6 w-6"><Bold className="w-3.5 h-3.5" /></Button>
-                    <Button variant="ghost" size="xs" className="h-6 w-6"><Italic className="w-3.5 h-3.5" /></Button>
-                    <Button variant="ghost" size="xs" className="h-6 w-6"><Code className="w-3.5 h-3.5" /></Button>
-                    <Separator orientation="vertical" className="h-3 mx-1" />
-                    <Button variant="ghost" size="xs" className="h-6 w-6"><List className="w-3.5 h-3.5" /></Button>
-                    <Button variant="ghost" size="xs" className="h-6 w-6"><ListOrdered className="w-3.5 h-3.5" /></Button>
-                    <Button variant="ghost" size="xs" className="h-6 w-6"><CheckSquare className="w-3.5 h-3.5" /></Button>
-                    <Separator orientation="vertical" className="h-3 mx-1" />
-                    <Button variant="ghost" size="xs" className="h-6 w-6"><Link className="w-3.5 h-3.5" /></Button>
-                    <Button variant="ghost" size="xs" className="h-6 w-6"><ImageIcon className="w-3.5 h-3.5" /></Button>
-                  </div>
+                <div className="no-print h-9 border-b flex items-center px-4 gap-1 bg-muted/10 shrink-0">
+                  <Button variant="ghost" size="xs" className="h-6 w-6" onClick={() => insertMarkdown('bold')} title="Bold (Ctrl+B)"><Bold className="w-3.5 h-3.5" /></Button>
+                  <Button variant="ghost" size="xs" className="h-6 w-6" onClick={() => insertMarkdown('italic')} title="Italic (Ctrl+I)"><Italic className="w-3.5 h-3.5" /></Button>
+                  <Button variant="ghost" size="xs" className="h-6 w-6" onClick={() => insertMarkdown('code')} title="Inline Code"><Code className="w-3.5 h-3.5" /></Button>
+                  <Separator orientation="vertical" className="h-3 mx-1" />
+                  <Button variant="ghost" size="xs" className="h-6 w-6" onClick={() => insertMarkdown('list')} title="Bullet List"><List className="w-3.5 h-3.5" /></Button>
+                  <Button variant="ghost" size="xs" className="h-6 w-6" onClick={() => insertMarkdown('ordered-list')} title="Numbered List"><ListOrdered className="w-3.5 h-3.5" /></Button>
+                  <Button variant="ghost" size="xs" className="h-6 w-6" onClick={() => insertMarkdown('task-list')} title="Task List"><CheckSquare className="w-3.5 h-3.5" /></Button>
+                  <Separator orientation="vertical" className="h-3 mx-1" />
+                  <Button variant="ghost" size="xs" className="h-6 w-6" onClick={() => insertMarkdown('link')} title="Insert Link"><Link className="w-3.5 h-3.5" /></Button>
+                  <Button variant="ghost" size="xs" className="h-6 w-6" onClick={() => insertMarkdown('image')} title="Insert Image"><ImageIcon className="w-3.5 h-3.5" /></Button>
+                  <Separator orientation="vertical" className="h-3 mx-1" />
+                  <Button variant="ghost" size="xs" className="h-6 w-6" onClick={() => insertMarkdown('quote')} title="Quote"><Quote className="w-3.5 h-3.5" /></Button>
                   <div className="flex-1" />
-                  <div className="flex items-center gap-2">
-                    <Button variant="ghost" size="xs" className="h-6 px-2 text-[10px]"><Command className="w-3 h-3 mr-1" /> K</Button>
-                  </div>
+                  <Button variant="ghost" size="xs" onClick={() => setIsCommandOpen(true)} className="h-6 px-2 text-[10px]"><Command className="w-3 h-3 mr-1" /> K</Button>
                 </div>
               )}
               
@@ -435,6 +518,7 @@ export default function FormaTextApp() {
                   language="markdown"
                   value={activeDoc?.content || ''}
                   onChange={updateContent}
+                  onMount={handleEditorDidMount}
                   options={{
                     minimap: { enabled: false },
                     fontSize: 14,
@@ -507,6 +591,14 @@ export default function FormaTextApp() {
         <CommandInput placeholder="Type a command or search..." className="no-print" />
         <CommandList className="no-print">
           <CommandEmpty>No results found.</CommandEmpty>
+          <CommandGroup heading="Actions">
+            <CommandItem onSelect={() => { insertMarkdown('undo'); setIsCommandOpen(false); }}>
+              <Undo2 className="mr-2 h-4 w-4" /> Undo
+            </CommandItem>
+            <CommandItem onSelect={() => { insertMarkdown('redo'); setIsCommandOpen(false); }}>
+              <Redo2 className="mr-2 h-4 w-4" /> Redo
+            </CommandItem>
+          </CommandGroup>
           <CommandGroup heading="Documents">
             <CommandItem onSelect={() => { createNewDoc(); setIsCommandOpen(false); }}>
               <Plus className="mr-2 h-4 w-4" /> New Document
@@ -527,6 +619,17 @@ export default function FormaTextApp() {
             </CommandItem>
             <CommandItem onSelect={() => { setIsZenMode(true); setIsCommandOpen(false); }}>
               <Maximize2 className="mr-2 h-4 w-4" /> Zen Mode
+            </CommandItem>
+          </CommandGroup>
+          <CommandGroup heading="Formatting">
+            <CommandItem onSelect={() => { insertMarkdown('bold'); setIsCommandOpen(false); }}>
+              <Bold className="mr-2 h-4 w-4" /> Bold
+            </CommandItem>
+            <CommandItem onSelect={() => { insertMarkdown('italic'); setIsCommandOpen(false); }}>
+              <Italic className="mr-2 h-4 w-4" /> Italic
+            </CommandItem>
+            <CommandItem onSelect={() => { insertMarkdown('code-block'); setIsCommandOpen(false); }}>
+              <Code className="mr-2 h-4 w-4" /> Code Block
             </CommandItem>
           </CommandGroup>
           <CommandGroup heading="Theme">
