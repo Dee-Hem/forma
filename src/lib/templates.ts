@@ -48,11 +48,6 @@ export const RESUME_TEMPLATES: ResumeTemplate[] = [
 - Advanced Algorithms
 - Intro to Machine Learning
 
-## RESEARCH GRANTS
-
-- **NSF Grant #88219** ($250,000): "Preserving Endangered Dialects through AI."
-- **Google Research Award** ($50,000): "Multilingual Embedding Space Optimization."
-
 ## TECHNICAL SKILLS
 
 - **Core:** Python, PyTorch, TensorFlow, R, LaTeX
@@ -70,8 +65,10 @@ export const RESUME_TEMPLATES: ResumeTemplate[] = [
 123 Executive Plaza, Chicago, IL | (312) 555-0100 | m.thorne@corporate.com
 [LinkedIn](https://linkedin.com/in/marcus-thorne)
 
+---
+
 ## EXECUTIVE SUMMARY
-Visionary Operations Executive with over 20 years of experience leading multi-national teams in the manufacturing and logistics sectors. Proven track record of increasing operational efficiency by up to 40% while reducing overhead costs by $15M+ annually. Expert in Lean Six Sigma, global supply chain optimization, and strategic turnarounds.
+Visionary Operations Executive with over 20 years of experience leading multi-national teams in the manufacturing and logistics sectors. Proven track record of increasing operational efficiency by up to 40% while reducing overhead costs by $15M+ annually.
 
 ## CORE COMPETENCIES
 - **Strategic Planning:** P&L Management, M&A Integration, Market Expansion
@@ -88,18 +85,11 @@ Visionary Operations Executive with over 20 years of experience leading multi-na
 ### Innovate Manufacturing | Director of Supply Chain | 2008 – 2015
 - Developed a global sourcing strategy that mitigated risks during significant market volatility.
 - Reduced inventory holding costs by 18% through the implementation of a Just-In-Time (JIT) system.
-- Mentored a team of 15 managers, 4 of whom were promoted to VP roles within the company.
 
 ## EDUCATION
 
 **Master of Business Administration (MBA)** | University of Chicago Booth School of Business
 **B.S. in Industrial Engineering** | Purdue University
-
-## AWARDS & BOARD MEMBERSHIPS
-
-- **Member of the Board**, Chicago Council on Global Affairs
-- **Operations Leader of the Year (2019)**, Global Business Review
-- **Certified Supply Chain Professional (CSCP)**, APICS
 `
   },
   {
@@ -127,19 +117,6 @@ Visionary Operations Executive with over 20 years of experience leading multi-na
 ### Software Engineer | FinTech Flow | 2018 – 2021
 - Developed core transaction ledger using Node.js and PostgreSQL with strict ACID compliance.
 - Implemented a GraphQL API layer that improved mobile app performance by **40%**.
-- Lead the migration from a monolith to Kubernetes-based microservices.
-
-## PROJECTS
-
-### OpenSource GraphDB
-A lightweight, high-performance graph database built in Rust.
-- **5.2k Stars** on GitHub.
-- Implemented a custom storage engine using B+ trees.
-
-### CodeFlow CLI
-Developer tool for automating local environment setup.
-- **10k+ downloads** on NPM.
-- Supports Docker, Nix, and Homebrew integrations.
 
 ## EDUCATION
 **B.S. Computer Science** | University of Waterloo | 2014 – 2018
@@ -161,7 +138,6 @@ Strategic Project Director with 15+ years of success in delivering complex, mult
 |---|---|
 | **Methodologies** | Agile, Waterfall, Scrum, Kanban, Lean |
 | **Tools** | Jira, Asana, MS Project, Smartsheet, Tableau |
-| **Compliance** | ISO 9001, GDPR, HIPAA, SOC2 |
 | **Strategy** | Risk Mitigation, Stakeholder Management, Budgeting |
 
 ### KEY ACHIEVEMENTS
@@ -173,14 +149,12 @@ Strategic Project Director with 15+ years of success in delivering complex, mult
 
 **Senior Project Manager | CityDevelop Tech | 2012 – 2017**
 - **On-Time Delivery:** Completed the "Smart City" IoT rollout 4 months ahead of schedule.
-- **Team Leadership:** Managed a cross-functional team of 60+ engineers, designers, and contractors.
 - **Quality Assurance:** Reduced post-launch bug reports by 55% through rigorous QA integration.
 
 ### EDUCATION & CREDENTIALS
 
 - **B.A. in Management & Technology** | Yale University
 - **PMP® Certification** | Project Management Institute
-- **Executive Leadership Program** | Wharton School of Business
 `
   }
 ];
