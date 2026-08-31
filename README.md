@@ -19,11 +19,11 @@ It is designed to provide a simple writing environment while still offering usef
 
 Try FormaText in your browser:
 
-**https://forma-psi-swart.vercel.app/**
+**https://formatext.vercel.app/**
 
 ## 📸 Preview
 
-<img width="1326" height="607" alt="image" src="https://github.com/user-attachments/assets/5a47183b-c8a1-40a8-b042-e06726e10bf5" />
+<img width="1326" height="610" alt="brave_screenshot_formatext vercel app (1)" src="https://github.com/user-attachments/assets/ede0cac1-a573-43d0-bbdc-8d313bf4c34a" />
 
 ## 🛠️ Tech Stack
 
