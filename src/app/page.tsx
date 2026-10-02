@@ -148,6 +148,7 @@ export default function FormaTextApp() {
   const [theme, setTheme] = useState<'light' | 'dark'>('dark');
   const [isCommandOpen, setIsCommandOpen] = useState(false);
   const [isTemplatesOpen, setIsTemplatesOpen] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -514,7 +515,9 @@ export default function FormaTextApp() {
               {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
             </Button>
             
-            <Button variant="ghost" size="icon" className="h-8 w-8"><Settings className="w-4 h-4" /></Button>
+            <Button variant="ghost" size="icon" onClick={() => setIsSettingsOpen(true)} className="h-8 w-8">
+              <Settings className="w-4 h-4" />
+            </Button>
           </div>
         </header>
       )}
@@ -754,7 +757,7 @@ export default function FormaTextApp() {
           <div className="flex items-center gap-4">
             <span className="flex items-center gap-1">
               <Clock className="w-3 h-3" />
-              {activeDoc ? `Saved ${new Date(activeDoc.updatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}` : 'Ready'}
+              {activeDoc && isMounted ? `Saved ${new Date(activeDoc.updatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}` : 'Ready'}
             </span>
           </div>
         </footer>
@@ -843,6 +846,47 @@ export default function FormaTextApp() {
                 </div>
               </div>
             ))}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Settings Dialog */}
+      <Dialog open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Settings</DialogTitle>
+            <DialogDescription>
+              Manage your preferences and editor configuration.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <div className="text-sm font-medium">Theme</div>
+                <div className="text-xs text-muted-foreground">Switch between light and dark mode.</div>
+              </div>
+              <Button variant="outline" size="sm" onClick={toggleTheme}>
+                {theme === 'dark' ? <Sun className="w-4 h-4 mr-2" /> : <Moon className="w-4 h-4 mr-2" />}
+                {theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
+              </Button>
+            </div>
+            <Separator />
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <div className="text-sm font-medium">Zen Mode</div>
+                <div className="text-xs text-muted-foreground">Focus on your writing without distractions.</div>
+              </div>
+              <Button variant="outline" size="sm" onClick={() => { setIsZenMode(true); setIsSettingsOpen(false); }}>
+                Enable
+              </Button>
+            </div>
+            <Separator />
+            <div className="space-y-2">
+              <div className="text-sm font-medium">About FormaText</div>
+              <div className="text-xs text-muted-foreground leading-relaxed">
+                A clean, minimal, and high-fidelity editor for modern writers. Built with Next.js, Monaco, and Markdown-it.
+              </div>
+            </div>
           </div>
         </DialogContent>
       </Dialog>

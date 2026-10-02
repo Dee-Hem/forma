@@ -61,7 +61,8 @@ Technical documentation often requires more than a basic text editor. FormaText 
 
 The project was built to explore the development of practical productivity tools while working with structured text formats and browser-based interfaces.
 
-## 🗺️ Roadmap
+## 🗺️ Roadmagit push origin main --force
+
 
 Potential improvements include:
 
