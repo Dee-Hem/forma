@@ -701,9 +701,13 @@ export default function FormaTextApp() {
         <DialogContent className="max-w-5xl rounded-3xl border-border/50 shadow-2xl overflow-hidden p-0">
           <div className="grid md:grid-cols-[280px_1fr] h-[600px]">
             <div className="bg-muted/30 p-8 border-r border-border/50">
-              <h2 className="text-2xl font-black tracking-tight mb-4">Template Library</h2>
-              <p className="text-sm text-muted-foreground leading-relaxed">Choose a pre-configured layout to start your professional document. All templates are fully customizable.</p>
-              <div className="mt-12 space-y-4">
+              <DialogHeader>
+                <DialogTitle className="text-2xl font-black tracking-tight mb-4">Template Library</DialogTitle>
+                <DialogDescription className="text-sm text-muted-foreground leading-relaxed mb-8">
+                  Choose a pre-configured layout to start your professional document. All templates are fully customizable.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="mt-4 space-y-4">
                 <div className="flex items-center gap-3 text-xs font-black uppercase tracking-widest text-accent"><Layout className="w-4 h-4" /> Featured</div>
                 <div className="flex items-center gap-3 text-xs font-bold text-muted-foreground/60"><FileText className="w-4 h-4" /> Resumes</div>
                 <div className="flex items-center gap-3 text-xs font-bold text-muted-foreground/60"><TableIcon className="w-4 h-4" /> Reports</div>
