@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
@@ -44,7 +45,8 @@ import {
   Quote,
   Code,
   Layers,
-  Baseline
+  Baseline,
+  ArrowUpRight
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -137,7 +139,6 @@ const DOCUMENT_FONTS = [
 ];
 
 export default function FormaTextApp() {
-  // --- State ---
   const [documents, setDocuments] = useState<Document[]>([]);
   const [activeDocId, setActiveDocId] = useState<string>('');
   const [viewMode, setViewMode] = useState<'editor' | 'preview' | 'split'>('split');
@@ -151,6 +152,7 @@ export default function FormaTextApp() {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [currentTime, setCurrentTime] = useState<string | null>(null);
 
   const isMobile = useIsMobile();
   const { toast } = useToast();
@@ -161,145 +163,80 @@ export default function FormaTextApp() {
 
   const activeDoc = documents.find(d => d.id === activeDocId);
 
-  // --- Monaco Helpers ---
+  // Hydration fix for time
+  useEffect(() => {
+    setIsMounted(true);
+    setCurrentTime(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
+  }, []);
+
   const handleEditorDidMount = (editor: any, monaco: any) => {
     editorRef.current = { editor, monaco };
-    
-    // Attach scroll listener
-    editor.onDidScrollChange(() => {
-      syncScroll();
-    });
-
-    // CRITICAL: Ensure layout is recalculated once fonts are ready to avoid cursor offset
+    editor.onDidScrollChange(() => syncScroll());
     if (typeof document !== 'undefined' && 'fonts' in document) {
-      (document as any).fonts.ready.then(() => {
-        editor.layout();
-      });
+      (document as any).fonts.ready.then(() => editor.layout());
     }
-
-    // Multiple layout retries to handle font rendering delays and dynamic shifts
-    [50, 200, 500, 1000].forEach(delay => {
-      setTimeout(() => {
-        if (editor) editor.layout();
-      }, delay);
-    });
-
-    // Sync layout on resize
-    const observer = new ResizeObserver(() => {
-      editor.layout();
-    });
-    if (editorContainerRef.current) {
-      observer.observe(editorContainerRef.current);
-    }
+    [50, 200, 500].forEach(delay => setTimeout(() => editor.layout(), delay));
   };
 
   const syncScroll = useCallback(() => {
     if (!editorRef.current?.editor || !previewRef.current || isSyncing.current) return;
-    
     const editor = editorRef.current.editor;
     const preview = previewRef.current;
     const viewport = preview.closest('[data-radix-scroll-area-viewport]');
-    
     if (!viewport) return;
-
     isSyncing.current = true;
-    
     const scrollHeight = editor.getScrollHeight();
     const scrollTop = editor.getScrollTop();
     const height = editor.getLayoutInfo().height;
-    
     const maxScroll = scrollHeight - height;
     if (maxScroll > 0) {
       const percentage = scrollTop / maxScroll;
       const maxPreviewScroll = viewport.scrollHeight - viewport.clientHeight;
       viewport.scrollTop = percentage * maxPreviewScroll;
     }
-
-    requestAnimationFrame(() => {
-      isSyncing.current = false;
-    });
+    requestAnimationFrame(() => { isSyncing.current = false; });
   }, []);
 
   const insertMarkdown = (type: string) => {
     if (!editorRef.current) return;
-    const { editor, monaco } = editorRef.current;
+    const { editor } = editorRef.current;
     const selection = editor.getSelection();
     const model = editor.getModel();
     const selectedText = model.getValueInRange(selection);
-
     let newText = '';
-    
     switch (type) {
-      case 'bold':
-        newText = `**${selectedText || 'bold text'}**`;
-        break;
-      case 'italic':
-        newText = `*${selectedText || 'italic text'}*`;
-        break;
-      case 'code':
-        newText = `\`${selectedText || 'code'}\``;
-        break;
-      case 'quote':
-        newText = `\n> ${selectedText || 'quote'}\n`;
-        break;
-      case 'list':
-        newText = (selectedText || 'item').split('\n').map(l => `- ${l}`).join('\n');
-        break;
-      case 'ordered-list':
-        newText = (selectedText || 'item').split('\n').map((l, i) => `${i + 1}. ${l}`).join('\n');
-        break;
-      case 'task-list':
-        newText = (selectedText || 'item').split('\n').map(l => `- [ ] ${l}`).join('\n');
-        break;
-      case 'link':
-        newText = `[${selectedText || 'link text'}](https://)`;
-        break;
-      case 'image':
-        newText = `![${selectedText || 'alt text'}](https://)`;
-        break;
-      case 'undo':
-        editor.trigger('keyboard', 'undo', null);
-        return;
-      case 'redo':
-        editor.trigger('keyboard', 'redo', null);
-        return;
-      case 'code-block':
-        newText = `\n\`\`\`\n${selectedText || 'code'}\n\`\`\`\n`;
-        break;
-      case 'hr':
-        newText = `\n---\n`;
-        break;
+      case 'bold': newText = `**${selectedText || 'bold text'}**`; break;
+      case 'italic': newText = `*${selectedText || 'italic text'}*`; break;
+      case 'code': newText = `\`${selectedText || 'code'}\``; break;
+      case 'quote': newText = `\n> ${selectedText || 'quote'}\n`; break;
+      case 'list': newText = (selectedText || 'item').split('\n').map(l => `- ${l}`).join('\n'); break;
+      case 'ordered-list': newText = (selectedText || 'item').split('\n').map((l, i) => `${i + 1}. ${l}`).join('\n'); break;
+      case 'task-list': newText = (selectedText || 'item').split('\n').map(l => `- [ ] ${l}`).join('\n'); break;
+      case 'link': newText = `[${selectedText || 'link text'}](https://)`; break;
+      case 'image': newText = `![${selectedText || 'alt text'}](https://)`; break;
+      case 'undo': editor.trigger('keyboard', 'undo', null); return;
+      case 'redo': editor.trigger('keyboard', 'redo', null); return;
+      case 'code-block': newText = `\n\`\`\`\n${selectedText || 'code'}\n\`\`\`\n`; break;
+      case 'hr': newText = `\n---\n`; break;
     }
-
-    editor.executeEdits('toolbar', [{
-      range: selection,
-      text: newText,
-      forceMoveMarkers: true
-    }]);
-    
+    editor.executeEdits('toolbar', [{ range: selection, text: newText, forceMoveMarkers: true }]);
     editor.focus();
   };
 
-  // --- Persistence & Lifecycle ---
   useEffect(() => {
-    setIsMounted(true);
     const savedDocs = localStorage.getItem('formatext_docs');
     const lastActive = localStorage.getItem('formatext_active_id');
     const savedTheme = localStorage.getItem('theme') as 'light' | 'dark';
-
     if (savedDocs) {
       const parsed = JSON.parse(savedDocs);
       setDocuments(parsed);
-      if (lastActive && parsed.some((d: any) => d.id === lastActive)) {
-        setActiveDocId(lastActive);
-      } else if (parsed.length > 0) {
-        setActiveDocId(parsed[0].id);
-      }
+      if (lastActive && parsed.some((d: any) => d.id === lastActive)) setActiveDocId(lastActive);
+      else if (parsed.length > 0) setActiveDocId(parsed[0].id);
     } else {
       const initialDoc: Document = {
         id: 'welcome',
         title: 'Welcome to FormaText',
-        content: '# Welcome to FormaText\n\nWrite Markdown. See it come alive.\n\n## Features\n- **Monaco Editor** integration\n- **GFM** Support\n- **Math** equations: $E=mc^2$\n- **Task Lists**\n- **Command Palette** (Cmd+K)\n\n[!NOTE]\nThis is a GitHub-style alert!',
+        content: '# Welcome to FormaText\n\nA professional editor for structured writing.\n\n## Media Budget Example\n| Item | Description | Cost |\n| :--- | :--- | :--- |\n| Hosting | AWS Infrastructure | $1,200 |\n| Design | Brand Identity | $3,500 |\n| Marketing | Social Campaigns | $2,000 |\n\n> This is a professional blockquote with refined styling.',
         updatedAt: Date.now(),
         isFavorite: false,
         fontFamily: "Inter, sans-serif"
@@ -307,53 +244,30 @@ export default function FormaTextApp() {
       setDocuments([initialDoc]);
       setActiveDocId('welcome');
     }
-
     if (savedTheme) {
       setTheme(savedTheme);
       document.documentElement.classList.toggle('dark', savedTheme === 'dark');
     } else {
       document.documentElement.classList.add('dark');
     }
-
     const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
-        e.preventDefault();
-        setIsCommandOpen(prev => !prev);
-      }
-      if ((e.metaKey || e.ctrlKey) && e.key === 's') {
-        e.preventDefault();
-        handleSave();
-      }
-      if ((e.metaKey || e.ctrlKey) && e.key === 'b') {
-        e.preventDefault();
-        insertMarkdown('bold');
-      }
-      if ((e.metaKey || e.ctrlKey) && e.key === 'i') {
-        e.preventDefault();
-        insertMarkdown('italic');
-      }
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') { e.preventDefault(); setIsCommandOpen(prev => !prev); }
+      if ((e.metaKey || e.ctrlKey) && e.key === 's') { e.preventDefault(); handleSave(); }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  useEffect(() => {
-    if (isMounted) {
-      localStorage.setItem('formatext_docs', JSON.stringify(documents));
-    }
-  }, [documents, isMounted]);
+  useEffect(() => { if (isMounted) localStorage.setItem('formatext_docs', JSON.stringify(documents)); }, [documents, isMounted]);
+  useEffect(() => { if (isMounted && activeDocId) localStorage.setItem('formatext_active_id', activeDocId); }, [activeDocId, isMounted]);
 
-  useEffect(() => {
-    if (isMounted && activeDocId) {
-      localStorage.setItem('formatext_active_id', activeDocId);
-    }
-  }, [activeDocId, isMounted]);
-
-  // --- Handlers ---
   const handleSave = useCallback(() => {
     setIsSaving(true);
-    setTimeout(() => setIsSaving(false), 800);
-    toast({ title: "Saved successfully" });
+    setTimeout(() => {
+      setIsSaving(false);
+      setCurrentTime(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
+    }, 600);
+    toast({ title: "Document saved" });
   }, [toast]);
 
   const updateContent = (val: string | undefined) => {
@@ -403,10 +317,7 @@ export default function FormaTextApp() {
       a.download = `${activeDoc.title}.md`;
       a.click();
     } else if (format === 'pdf') {
-      setIsCommandOpen(false);
-      setTimeout(() => {
-        window.print();
-      }, 300);
+      window.print();
     }
   };
 
@@ -424,10 +335,7 @@ export default function FormaTextApp() {
   const useTemplate = (template: ResumeTemplate) => {
     createNewDoc(template.name, template.content, template.id);
     setIsTemplatesOpen(false);
-    toast({
-      title: `${template.name} template loaded`,
-      description: "You can now edit your resume."
-    });
+    toast({ title: `${template.name} applied` });
   };
 
   if (!isMounted) return null;
@@ -435,305 +343,309 @@ export default function FormaTextApp() {
   const outline = activeDoc ? generateOutline(activeDoc.content) : [];
 
   return (
-    <div className={`flex flex-col h-screen bg-background overflow-hidden ${isZenMode ? 'zen-mode' : ''}`}>
-      {/* Header */}
+    <div className={`flex flex-col h-screen bg-background selection:bg-accent/20 selection:text-accent overflow-hidden ${isZenMode ? 'zen-mode' : ''}`}>
+      {/* Premium Header */}
       {!isZenMode && (
-        <header className="no-print h-12 border-b flex items-center justify-between px-4 bg-card shrink-0 z-50">
-          <div className="flex items-center gap-3">
-            <Button variant="ghost" size="icon" onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="h-8 w-8">
-              <Menu className="w-4 h-4" />
+        <header className="no-print h-14 border-b flex items-center justify-between px-6 bg-card/50 backdrop-blur-xl shrink-0 z-50">
+          <div className="flex items-center gap-4">
+            <Button variant="ghost" size="icon" onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="h-9 w-9 hover:bg-muted/50 transition-colors">
+              <Menu className="w-4 h-4 text-muted-foreground" />
             </Button>
-            <div className="flex items-center gap-2">
-              <FileText className="w-5 h-5 text-primary" />
-              <span className="font-bold text-sm tracking-tight hidden sm:block">FormaText</span>
+            <div className="flex items-center gap-2 group cursor-pointer" onClick={() => setIsCommandOpen(true)}>
+              <div className="bg-accent/10 p-1.5 rounded-lg group-hover:bg-accent/20 transition-colors">
+                <FileText className="w-4 h-4 text-accent" />
+              </div>
+              <span className="font-semibold text-sm tracking-tight text-foreground/90">FormaText</span>
             </div>
-            <Separator orientation="vertical" className="h-4 mx-2" />
-            <div className="flex items-center gap-2">
+            <Separator orientation="vertical" className="h-5 mx-2 bg-border/50" />
+            <div className="flex items-center gap-3">
               <Input 
                 value={activeDoc?.title || ''} 
                 onChange={(e) => setDocuments(prev => prev.map(d => d.id === activeDocId ? { ...d, title: e.target.value } : d))}
-                className="h-7 px-2 text-sm font-medium border-none bg-transparent focus-visible:ring-1 max-w-[200px]"
+                className="h-8 px-2 text-sm font-semibold border-none bg-transparent focus-visible:ring-1 focus-visible:ring-accent/30 max-w-[240px] transition-all"
+                placeholder="Untitled Document"
               />
-              {isSaving && <span className="text-[10px] text-muted-foreground animate-pulse">Saving...</span>}
+              {isSaving && <div className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse shadow-[0_0_8px_rgba(var(--accent),0.5)]" />}
             </div>
           </div>
 
-          <div className="flex items-center gap-1">
-            <div className="hidden md:flex items-center gap-1 mr-2">
-              <Button variant="ghost" size="icon" onClick={() => insertMarkdown('undo')} className="h-8 w-8">
-                <Undo2 className="w-4 h-4" />
-              </Button>
-              <Button variant="ghost" size="icon" onClick={() => insertMarkdown('redo')} className="h-8 w-8">
-                <Redo2 className="w-4 h-4" />
-              </Button>
-            </div>
-            
-            <Separator orientation="vertical" className="h-4 mx-2 hidden md:block" />
-
-            <div className="hidden md:flex items-center bg-muted/30 rounded-lg p-0.5 mr-2">
+          <div className="flex items-center gap-2">
+            <div className="hidden lg:flex items-center bg-muted/30 rounded-xl p-1 gap-1 border border-border/50">
               <Button 
                 variant={viewMode === 'editor' ? 'secondary' : 'ghost'} 
                 size="xs" 
                 onClick={() => setViewMode('editor')}
-                className="h-7 w-7"
+                className={cn("h-7 px-3 text-[11px] font-bold rounded-lg transition-all", viewMode === 'editor' && "shadow-sm bg-card")}
               >
-                <Square className="w-3.5 h-3.5" />
+                Editor
               </Button>
               <Button 
                 variant={viewMode === 'split' ? 'secondary' : 'ghost'} 
                 size="xs" 
                 onClick={() => setViewMode('split')}
-                className="h-7 w-7"
+                className={cn("h-7 px-3 text-[11px] font-bold rounded-lg transition-all", viewMode === 'split' && "shadow-sm bg-card")}
               >
-                <Columns className="w-3.5 h-3.5" />
+                Split
               </Button>
               <Button 
                 variant={viewMode === 'preview' ? 'secondary' : 'ghost'} 
                 size="xs" 
                 onClick={() => setViewMode('preview')}
-                className="h-7 w-7"
+                className={cn("h-7 px-3 text-[11px] font-bold rounded-lg transition-all", viewMode === 'preview' && "shadow-sm bg-card")}
               >
-                <Eye className="w-3.5 h-3.5" />
+                Preview
               </Button>
             </div>
 
-            <Button variant="ghost" size="icon" onClick={() => setIsZenMode(true)} title="Zen Mode" className="h-8 w-8">
-              <Maximize2 className="w-4 h-4" />
-            </Button>
-            
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm" className="h-8 px-2 text-xs">Export</Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-40">
-                <DropdownMenuItem onClick={() => handleExport('md')}><Download className="w-4 h-4 mr-2" /> Markdown</DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleExport('pdf')}><Download className="w-4 h-4 mr-2" /> PDF</DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <Separator orientation="vertical" className="h-5 mx-2 bg-border/50 hidden md:block" />
 
-            <Button variant="ghost" size="icon" onClick={toggleTheme} className="h-8 w-8">
-              {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-            </Button>
-            
-            <Button variant="ghost" size="icon" onClick={() => setIsSettingsOpen(true)} className="h-8 w-8">
-              <Settings className="w-4 h-4" />
-            </Button>
+            <div className="flex items-center gap-1">
+              <Button variant="ghost" size="icon" onClick={() => setIsZenMode(true)} className="h-9 w-9 hover:text-accent transition-colors">
+                <Maximize2 className="w-4 h-4" />
+              </Button>
+              
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="default" size="sm" className="h-8 px-4 text-xs font-bold rounded-lg bg-accent hover:bg-accent/90 shadow-lg shadow-accent/20">
+                    Export <Download className="w-3 h-3 ml-2" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-44 rounded-xl shadow-2xl border-border/50">
+                  <DropdownMenuItem onClick={() => handleExport('md')} className="cursor-pointer">
+                    <FileText className="w-4 h-4 mr-2 text-muted-foreground" /> Markdown
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleExport('pdf')} className="cursor-pointer">
+                    <ArrowUpRight className="w-4 h-4 mr-2 text-muted-foreground" /> PDF Document
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+
+              <Button variant="ghost" size="icon" onClick={() => setIsSettingsOpen(true)} className="h-9 w-9 hover:text-accent transition-colors">
+                <Settings className="w-4 h-4" />
+              </Button>
+            </div>
           </div>
         </header>
       )}
 
-      {/* Zen Mode Exit Overlay */}
-      {isZenMode && (
-        <Button 
-          variant="ghost" 
-          size="icon" 
-          onClick={() => setIsZenMode(false)} 
-          className="fixed top-4 right-4 z-[60] h-10 w-10 bg-background/50 backdrop-blur rounded-full border shadow-xl hover:bg-background no-print"
-        >
-          <X className="w-5 h-5" />
-        </Button>
-      )}
-
-      {/* Main Content */}
+      {/* Main Content Area */}
       <main className="flex-1 flex overflow-hidden relative">
         <PanelGroup direction="horizontal">
-          {/* Sidebar */}
+          {/* Professional Sidebar */}
           {isSidebarOpen && !isZenMode && (
             <>
-              <Panel defaultSize={20} minSize={15} maxSize={30} className="no-print bg-card border-r sidebar-panel-wrapper">
+              <Panel defaultSize={20} minSize={15} maxSize={30} className="no-print bg-card/30 border-r border-border/50 sidebar-panel-wrapper backdrop-blur-sm">
                 <div className="flex flex-col h-full">
-                  <div className="p-3 flex items-center justify-between">
+                  <div className="p-4">
                     <Tabs value={sidebarTab} onValueChange={(v) => setSidebarTab(v as any)} className="w-full">
-                      <TabsList className="grid w-full grid-cols-2 h-8">
-                        <TabsTrigger value="explorer" className="text-[10px] uppercase font-bold tracking-widest">Docs</TabsTrigger>
-                        <TabsTrigger value="outline" className="text-[10px] uppercase font-bold tracking-widest">Outline</TabsTrigger>
+                      <TabsList className="grid w-full grid-cols-2 h-9 rounded-xl bg-muted/50 p-1 border border-border/30">
+                        <TabsTrigger value="explorer" className="text-[10px] uppercase font-black tracking-widest rounded-lg transition-all data-[state=active]:bg-card data-[state=active]:text-accent">Docs</TabsTrigger>
+                        <TabsTrigger value="outline" className="text-[10px] uppercase font-black tracking-widest rounded-lg transition-all data-[state=active]:bg-card data-[state=active]:text-accent">Outline</TabsTrigger>
                       </TabsList>
                     </Tabs>
                   </div>
 
                   <ScrollArea className="flex-1">
                     {sidebarTab === 'explorer' ? (
-                      <div className="p-2 space-y-4">
-                        <div className="relative">
-                          <Search className="w-3 h-3 absolute left-2 top-2.5 text-muted-foreground" />
+                      <div className="px-3 space-y-4">
+                        <div className="relative group">
+                          <Search className="w-3.5 h-3.5 absolute left-3 top-2.5 text-muted-foreground group-focus-within:text-accent transition-colors" />
                           <Input 
-                            placeholder="Search..." 
-                            className="h-8 pl-7 text-xs bg-muted/30 border-none"
+                            placeholder="Quick search..." 
+                            className="h-9 pl-9 text-xs bg-muted/50 border-border/30 rounded-xl focus-visible:ring-accent/30 transition-all"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                           />
                         </div>
                         <div className="space-y-1">
-                          <div className="flex items-center gap-1 w-full">
-                            <Button variant="ghost" size="sm" onClick={() => createNewDoc()} className="flex-1 justify-start text-xs h-8 px-2">
-                              <Plus className="w-3 h-3 mr-2" /> New
+                          <div className="flex items-center gap-2 mb-4">
+                            <Button variant="outline" size="sm" onClick={() => createNewDoc()} className="flex-1 justify-start text-[11px] font-bold h-9 px-3 rounded-xl hover:bg-accent/5 hover:text-accent hover:border-accent/30 transition-all">
+                              <Plus className="w-3.5 h-3.5 mr-2" /> New Doc
                             </Button>
-                            <Button variant="ghost" size="sm" onClick={() => setIsTemplatesOpen(true)} className="flex-1 justify-start text-xs h-8 px-2">
-                              <Layers className="w-3 h-3 mr-2" /> Templates
+                            <Button variant="outline" size="sm" onClick={() => setIsTemplatesOpen(true)} className="flex-1 justify-start text-[11px] font-bold h-9 px-3 rounded-xl hover:bg-accent/5 hover:text-accent hover:border-accent/30 transition-all">
+                              <Layers className="w-3.5 h-3.5 mr-2" /> Library
                             </Button>
                           </div>
-                          <Separator className="my-2" />
-                          {documents
-                            .filter(d => d.title.toLowerCase().includes(searchQuery.toLowerCase()))
-                            .map(doc => (
-                              <div 
-                                key={doc.id}
-                                className={`group flex items-center justify-between p-2 rounded-md cursor-pointer transition-colors ${activeDocId === doc.id ? 'bg-accent text-accent-foreground' : 'hover:bg-muted/50'}`}
-                                onClick={() => setActiveDocId(doc.id)}
-                              >
-                                <div className="flex items-center gap-2 truncate">
-                                  <FileText className={`w-3.5 h-3.5 ${activeDocId === doc.id ? 'text-primary' : 'text-muted-foreground'}`} />
-                                  <span className="text-xs truncate">{doc.title}</span>
+                          
+                          <div className="space-y-0.5">
+                            {documents
+                              .filter(d => d.title.toLowerCase().includes(searchQuery.toLowerCase()))
+                              .map(doc => (
+                                <div 
+                                  key={doc.id}
+                                  className={cn(
+                                    "group flex items-center justify-between p-2.5 rounded-xl cursor-pointer transition-all duration-200",
+                                    activeDocId === doc.id 
+                                      ? "bg-accent/10 text-accent font-bold shadow-sm" 
+                                      : "hover:bg-muted/50 text-muted-foreground hover:text-foreground"
+                                  )}
+                                  onClick={() => setActiveDocId(doc.id)}
+                                >
+                                  <div className="flex items-center gap-3 truncate">
+                                    <div className={cn("w-2 h-2 rounded-full transition-all", activeDocId === doc.id ? "bg-accent" : "bg-transparent")} />
+                                    <span className="text-[13px] truncate tracking-tight">{doc.title}</span>
+                                  </div>
+                                  <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                      <Button variant="ghost" size="icon" className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity"><MoreVertical className="w-3.5 h-3.5" /></Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent className="rounded-xl">
+                                      <DropdownMenuItem onClick={() => deleteDoc(doc.id)} className="text-destructive font-semibold"><Trash2 className="w-4 h-4 mr-2" /> Delete</DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                  </DropdownMenu>
                                 </div>
-                                <DropdownMenu>
-                                  <DropdownMenuTrigger asChild>
-                                    <Button variant="ghost" size="icon" className="h-6 w-6 opacity-0 group-hover:opacity-100"><MoreVertical className="w-3 h-3" /></Button>
-                                  </DropdownMenuTrigger>
-                                  <DropdownMenuContent>
-                                    <DropdownMenuItem onClick={() => deleteDoc(doc.id)} className="text-destructive"><Trash2 className="w-4 h-4 mr-2" /> Delete</DropdownMenuItem>
-                                  </DropdownMenuContent>
-                                </DropdownMenu>
-                              </div>
-                            ))
-                          }
+                              ))
+                            }
+                          </div>
                         </div>
                       </div>
                     ) : (
-                      <div className="p-3 space-y-1">
+                      <div className="p-4 space-y-1">
                         {outline.length > 0 ? (
                           outline.map((item: any) => (
                             <button
                               key={item.id}
-                              className="w-full text-left text-xs py-1.5 px-2 rounded hover:bg-muted/50 truncate text-muted-foreground hover:text-foreground transition-colors"
-                              style={{ paddingLeft: `${(item.level - 1) * 12 + 8}px` }}
-                              onClick={() => {
-                                if (editorRef.current?.editor) {
-                                  editorRef.current.editor.revealLineInCenter(item.id + 1);
-                                }
-                              }}
+                              className="w-full text-left text-[12px] py-2 px-3 rounded-lg hover:bg-accent/5 truncate text-muted-foreground hover:text-accent transition-all border-l-2 border-transparent hover:border-accent/50"
+                              style={{ marginLeft: `${(item.level - 1) * 8}px` }}
+                              onClick={() => editorRef.current?.editor?.revealLineInCenter(item.id + 1)}
                             >
                               {item.text}
                             </button>
                           ))
                         ) : (
-                          <div className="text-[10px] text-muted-foreground italic p-4 text-center">No headings found.</div>
+                          <div className="text-[11px] text-muted-foreground/60 italic p-8 text-center bg-muted/20 rounded-2xl border border-dashed border-border/50">
+                            Start typing headings to see the document structure.
+                          </div>
                         )}
                       </div>
                     )}
                   </ScrollArea>
                 </div>
               </Panel>
-              <PanelResizeHandle className="no-print panel-resize-handle" />
+              <PanelResizeHandle className="no-print w-1 bg-border/20 hover:bg-accent/30 transition-colors cursor-col-resize" />
             </>
           )}
 
-          {/* Editor & Preview */}
+          {/* Editor & Preview Panels */}
           <Panel 
-            defaultSize={viewMode === 'editor' ? 100 : viewMode === 'preview' ? 0 : 40} 
+            defaultSize={viewMode === 'editor' ? 100 : viewMode === 'preview' ? 0 : 50} 
             minSize={0}
             className="editor-panel-wrapper"
-            onResize={() => {
-              if (editorRef.current?.editor) {
-                editorRef.current.editor.layout();
-              }
-            }}
+            onResize={() => editorRef.current?.editor?.layout()}
           >
-            <div className={`h-full flex flex-col bg-background ${isZenMode ? 'main-content' : ''}`}>
+            <div className="h-full flex flex-col bg-background relative">
               {!isZenMode && (
-                <div className="no-print h-9 border-b flex items-center px-4 gap-1 bg-muted/10 shrink-0">
-                  <Select value={activeDoc?.fontFamily || "Inter, sans-serif"} onValueChange={updateFont}>
-                    <SelectTrigger className="h-7 w-[180px] text-[10px] bg-transparent border-none focus:ring-0">
-                      <Baseline className="w-3 h-3 mr-2 text-muted-foreground" />
-                      <SelectValue placeholder="Font Family" />
-                    </SelectTrigger>
-                    <SelectContent className="max-h-96">
-                      {DOCUMENT_FONTS.map(group => (
-                        <SelectGroup key={group.group}>
-                          <SelectLabel className="text-[9px] uppercase tracking-widest text-muted-foreground px-4 py-2">{group.group}</SelectLabel>
-                          {group.fonts.map(font => (
-                            <SelectItem key={font.name} value={font.value} className="text-xs">
-                              <span style={{ fontFamily: font.value }}>{font.name}</span>
-                            </SelectItem>
-                          ))}
-                        </SelectGroup>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <Separator orientation="vertical" className="h-3 mx-1" />
-                  <Button variant="ghost" size="xs" className="h-6 w-6" onClick={() => insertMarkdown('bold')} title="Bold (Ctrl+B)"><Bold className="w-3.5 h-3.5" /></Button>
-                  <Button variant="ghost" size="xs" className="h-6 w-6" onClick={() => insertMarkdown('italic')} title="Italic (Ctrl+I)"><Italic className="w-3.5 h-3.5" /></Button>
-                  <Button variant="ghost" size="xs" className="h-6 w-6" onClick={() => insertMarkdown('code')} title="Inline Code"><Code className="w-3.5 h-3.5" /></Button>
-                  <Separator orientation="vertical" className="h-3 mx-1" />
-                  <Button variant="ghost" size="xs" className="h-6 w-6" onClick={() => insertMarkdown('list')} title="Bullet List"><List className="w-3.5 h-3.5" /></Button>
-                  <Button variant="ghost" size="xs" className="h-6 w-6" onClick={() => insertMarkdown('ordered-list')} title="Numbered List"><ListOrdered className="w-3.5 h-3.5" /></Button>
-                  <Button variant="ghost" size="xs" className="h-6 w-6" onClick={() => insertMarkdown('task-list')} title="Task List"><CheckSquare className="w-3.5 h-3.5" /></Button>
-                  <Separator orientation="vertical" className="h-3 mx-1" />
-                  <Button variant="ghost" size="xs" className="h-6 w-6" onClick={() => insertMarkdown('link')} title="Insert Link"><Link className="w-3.5 h-3.5" /></Button>
-                  <Button variant="ghost" size="xs" className="h-6 w-6" onClick={() => insertMarkdown('image')} title="Insert Image"><ImageIcon className="w-3.5 h-3.5" /></Button>
-                  <Separator orientation="vertical" className="h-3 mx-1" />
-                  <Button variant="ghost" size="xs" className="h-6 w-6" onClick={() => insertMarkdown('quote')} title="Quote"><Quote className="w-3.5 h-3.5" /></Button>
+                <div className="no-print h-10 border-b flex items-center px-4 gap-2 bg-card/30 shrink-0 overflow-x-auto no-scrollbar">
+                  {/* Categorized Toolbar */}
+                  <div className="flex items-center gap-1">
+                    <Select value={activeDoc?.fontFamily || "Inter, sans-serif"} onValueChange={updateFont}>
+                      <SelectTrigger className="h-7 w-[160px] text-[11px] font-bold bg-muted/40 border-none rounded-lg focus:ring-accent/30 transition-all hover:bg-muted/60">
+                        <Baseline className="w-3.5 h-3.5 mr-2 text-accent" />
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="max-h-96 rounded-xl shadow-2xl">
+                        {DOCUMENT_FONTS.map(group => (
+                          <SelectGroup key={group.group}>
+                            <SelectLabel className="text-[9px] uppercase font-black tracking-[0.2em] text-muted-foreground px-4 py-3">{group.group}</SelectLabel>
+                            {group.fonts.map(font => (
+                              <SelectItem key={font.name} value={font.value} className="text-[13px] py-2">
+                                <span style={{ fontFamily: font.value }}>{font.name}</span>
+                              </SelectItem>
+                            ))}
+                          </SelectGroup>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <Separator orientation="vertical" className="h-4 mx-1 bg-border/50" />
+                  
+                  <div className="flex items-center gap-0.5">
+                    <Button variant="ghost" size="xs" className="h-7 w-7 rounded-lg hover:text-accent transition-colors" onClick={() => insertMarkdown('bold')}><Bold className="w-3.5 h-3.5" /></Button>
+                    <Button variant="ghost" size="xs" className="h-7 w-7 rounded-lg hover:text-accent transition-colors" onClick={() => insertMarkdown('italic')}><Italic className="w-3.5 h-3.5" /></Button>
+                    <Button variant="ghost" size="xs" className="h-7 w-7 rounded-lg hover:text-accent transition-colors" onClick={() => insertMarkdown('code')}><Code className="w-3.5 h-3.5" /></Button>
+                  </div>
+
+                  <Separator orientation="vertical" className="h-4 mx-1 bg-border/50" />
+
+                  <div className="flex items-center gap-0.5">
+                    <Button variant="ghost" size="xs" className="h-7 w-7 rounded-lg hover:text-accent transition-colors" onClick={() => insertMarkdown('list')}><List className="w-3.5 h-3.5" /></Button>
+                    <Button variant="ghost" size="xs" className="h-7 w-7 rounded-lg hover:text-accent transition-colors" onClick={() => insertMarkdown('task-list')}><CheckSquare className="w-3.5 h-3.5" /></Button>
+                  </div>
+
+                  <Separator orientation="vertical" className="h-4 mx-1 bg-border/50" />
+
+                  <div className="flex items-center gap-0.5">
+                    <Button variant="ghost" size="xs" className="h-7 w-7 rounded-lg hover:text-accent transition-colors" onClick={() => insertMarkdown('link')}><Link className="w-3.5 h-3.5" /></Button>
+                    <Button variant="ghost" size="xs" className="h-7 w-7 rounded-lg hover:text-accent transition-colors" onClick={() => insertMarkdown('image')}><ImageIcon className="w-3.5 h-3.5" /></Button>
+                  </div>
+
                   <div className="flex-1" />
-                  <Button variant="ghost" size="xs" onClick={() => setIsCommandOpen(true)} className="h-6 px-2 text-[10px]"><Command className="w-3 h-3 mr-1" /> K</Button>
+                  <Button variant="ghost" size="xs" onClick={() => setIsCommandOpen(true)} className="h-7 px-2 text-[10px] font-black bg-accent/5 text-accent rounded-lg border border-accent/10">
+                    <Command className="w-3 h-3 mr-1" /> K
+                  </Button>
                 </div>
               )}
               
-              <div 
-                ref={editorContainerRef}
-                className="flex-1 relative overflow-hidden print:hidden"
-              >
-                <Editor
-                  height="100%"
-                  theme={theme === 'dark' ? 'vs-dark' : 'light'}
-                  language="markdown"
-                  value={activeDoc?.content || ''}
-                  onChange={updateContent}
-                  onMount={handleEditorDidMount}
-                  options={{
-                    minimap: { enabled: false },
-                    fontSize: 14,
-                    lineNumbers: 'on',
-                    wordWrap: 'on',
-                    padding: { top: 20 },
-                    scrollBeyondLastLine: true,
-                    automaticLayout: true,
-                    fontFamily: "'Fira Code', monospace",
-                    fixedOverflowWidgets: true,
-                    renderLineHighlight: 'all',
-                    fontLigatures: false,
-                    letterSpacing: 0,
-                  }}
-                />
+              <div ref={editorContainerRef} className="flex-1 relative overflow-hidden print:hidden p-2">
+                <div className="h-full rounded-2xl overflow-hidden border border-border/50 shadow-inner">
+                  <Editor
+                    height="100%"
+                    theme={theme === 'dark' ? 'vs-dark' : 'light'}
+                    language="markdown"
+                    value={activeDoc?.content || ''}
+                    onChange={updateContent}
+                    onMount={handleEditorDidMount}
+                    options={{
+                      minimap: { enabled: false },
+                      fontSize: 15,
+                      lineNumbers: 'on',
+                      wordWrap: 'on',
+                      padding: { top: 32, bottom: 32 },
+                      scrollBeyondLastLine: true,
+                      fontFamily: "'Fira Code', monospace",
+                      renderLineHighlight: 'all',
+                      lineHeight: 1.6,
+                      cursorSmoothCaretAnimation: 'on',
+                      smoothScrolling: true,
+                      letterSpacing: 0,
+                    }}
+                  />
+                </div>
               </div>
             </div>
           </Panel>
 
           {viewMode !== 'editor' && (
             <>
-              {!isZenMode && <PanelResizeHandle className="no-print panel-resize-handle" />}
+              {!isZenMode && <PanelResizeHandle className="no-print w-1 bg-border/20 hover:bg-accent/30 transition-colors cursor-col-resize" />}
               <Panel 
-                defaultSize={viewMode === 'preview' ? 100 : 40} 
+                defaultSize={viewMode === 'preview' ? 100 : 50} 
                 minSize={20}
                 className="preview-container"
               >
-                <div className="h-full flex flex-col bg-background print:bg-white overflow-hidden border-l print:border-none">
+                <div className="h-full flex flex-col bg-background print:bg-white overflow-hidden border-l border-border/50 print:border-none relative">
                   {!isZenMode && (
-                    <div className="no-print h-9 border-b flex items-center justify-between px-4 bg-muted/10 shrink-0">
-                      <span className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase">Preview</span>
-                      <div className="flex items-center gap-2">
-                        <Badge variant="outline" className="text-[9px] h-4">GFM</Badge>
+                    <div className="no-print h-10 border-b flex items-center justify-between px-6 bg-card/30 shrink-0">
+                      <div className="flex items-center gap-3">
+                        <span className="text-[10px] font-black tracking-[0.25em] text-accent uppercase">Live Preview</span>
+                        <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                       </div>
+                      <Badge variant="outline" className="text-[9px] h-5 rounded-lg font-black bg-muted/50 border-border/50">GFM RENDERER</Badge>
                     </div>
                   )}
                   <ScrollArea className="flex-1 print:overflow-visible">
-                    <div 
-                      ref={previewRef}
-                      className={cn(
-                        "preview-content max-w-3xl mx-auto px-8 py-12 md:px-12 md:py-20 text-foreground dark:text-slate-100 print:text-black print:py-0 print:px-0",
-                        activeDoc?.templateId && `resume-${activeDoc.templateId}`
-                      )}
-                      style={{ fontFamily: activeDoc?.fontFamily || 'Inter, sans-serif' }}
-                      dangerouslySetInnerHTML={{ __html: renderMarkdown(activeDoc?.content || '') }}
-                    />
+                    <div className="max-w-4xl mx-auto px-8 py-16 md:px-16 md:py-24 print:p-0">
+                      <div 
+                        ref={previewRef}
+                        className={cn(
+                          "preview-content text-foreground/90 dark:text-slate-100 print:text-black",
+                          activeDoc?.templateId && `resume-${activeDoc.templateId}`
+                        )}
+                        style={{ fontFamily: activeDoc?.fontFamily || 'Inter, sans-serif' }}
+                        dangerouslySetInnerHTML={{ __html: renderMarkdown(activeDoc?.content || '') }}
+                      />
+                    </div>
                   </ScrollArea>
                 </div>
               </Panel>
@@ -742,150 +654,119 @@ export default function FormaTextApp() {
         </PanelGroup>
       </main>
 
-      {/* Footer / Status Bar */}
+      {/* Modern Status Bar */}
       {!isZenMode && (
-        <footer className="no-print h-7 border-t flex items-center justify-between px-4 bg-card text-[10px] font-medium text-muted-foreground shrink-0 select-none">
+        <footer className="no-print h-9 border-t flex items-center justify-between px-6 bg-card/50 text-[10px] font-bold text-muted-foreground/70 shrink-0 select-none backdrop-blur-md">
+          <div className="flex items-center gap-8">
+            <span className="flex items-center gap-2 group cursor-default">
+              <div className="w-1.5 h-1.5 rounded-full bg-accent/40 group-hover:bg-accent transition-colors" />
+              <span className="tracking-tight">{activeDoc?.content.split(/\s+/).filter(Boolean).length || 0} WORDS</span>
+            </span>
+            <span className="flex items-center gap-2">
+              <Clock className="w-3.5 h-3.5 text-accent/50" />
+              <span className="tracking-tight">{Math.ceil((activeDoc?.content.split(/\s+/).filter(Boolean).length || 0) / 200)} MIN READ</span>
+            </span>
+          </div>
           <div className="flex items-center gap-6">
-            <span className="flex items-center gap-1.5"><Badge variant="outline" className="text-[8px] h-4 font-mono px-1">GFM</Badge> Ready</span>
-            {activeDoc && (
-              <span className="flex items-center gap-3">
-                <span>{activeDoc.content.split(/\s+/).filter(Boolean).length} Words</span>
-                <span>{Math.ceil(activeDoc.content.split(/\s+/).filter(Boolean).length / 200)} Min Read</span>
+            {activeDoc && currentTime && (
+              <span className="flex items-center gap-2 tracking-tighter uppercase opacity-80">
+                <div className="w-1 h-1 rounded-full bg-muted-foreground/30" />
+                Auto-saved {currentTime}
               </span>
             )}
-          </div>
-          <div className="flex items-center gap-4">
-            <span className="flex items-center gap-1">
-              <Clock className="w-3 h-3" />
-              {activeDoc && isMounted ? `Saved ${new Date(activeDoc.updatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}` : 'Ready'}
-            </span>
+            <Badge variant="secondary" className="text-[8px] h-4 rounded-md font-black bg-accent/10 text-accent border-none">V0.3.0 PRO</Badge>
           </div>
         </footer>
       )}
 
       {/* Command Palette */}
       <CommandDialog open={isCommandOpen} onOpenChange={setIsCommandOpen}>
-        <CommandInput placeholder="Type a command or search..." className="no-print" />
+        <CommandInput placeholder="Search actions, files, settings..." className="no-print border-none" />
         <CommandList className="no-print">
-          <CommandEmpty>No results found.</CommandEmpty>
-          <CommandGroup heading="Actions">
-            <CommandItem onSelect={() => { insertMarkdown('undo'); setIsCommandOpen(false); }}>
-              <Undo2 className="mr-2 h-4 w-4" /> Undo
-            </CommandItem>
-            <CommandItem onSelect={() => { insertMarkdown('redo'); setIsCommandOpen(false); }}>
-              <Redo2 className="mr-2 h-4 w-4" /> Redo
-            </CommandItem>
+          <CommandEmpty>No matching results.</CommandEmpty>
+          <CommandGroup heading="Suggestions">
+            <CommandItem onSelect={() => { createNewDoc(); setIsCommandOpen(false); }} className="rounded-lg py-3"><Plus className="mr-3 h-4 w-4 text-accent" /> New Document</CommandItem>
+            <CommandItem onSelect={() => { setIsTemplatesOpen(true); setIsCommandOpen(false); }} className="rounded-lg py-3"><Layers className="mr-3 h-4 w-4 text-accent" /> Browse Template Library</CommandItem>
           </CommandGroup>
-          <CommandGroup heading="Documents">
-            <CommandItem onSelect={() => { createNewDoc(); setIsCommandOpen(false); }}>
-              <Plus className="mr-2 h-4 w-4" /> New Document
-            </CommandItem>
-            <CommandItem onSelect={() => { setIsTemplatesOpen(true); setIsCommandOpen(false); }}>
-              <Layers className="mr-2 h-4 w-4" /> Resume Templates
-            </CommandItem>
-          </CommandGroup>
-          <CommandGroup heading="View">
-            <CommandItem onSelect={() => { setViewMode('editor'); setIsCommandOpen(false); }}>
-              <Square className="mr-2 h-4 w-4" /> Editor Mode
-            </CommandItem>
-            <CommandItem onSelect={() => { setViewMode('split'); setIsCommandOpen(false); }}>
-              <Columns className="mr-2 h-4 w-4" /> Split Mode
-            </CommandItem>
-            <CommandItem onSelect={() => { setViewMode('preview'); setIsCommandOpen(false); }}>
-              <Eye className="mr-2 h-4 w-4" /> Preview Mode
-            </CommandItem>
-            <CommandItem onSelect={() => { setIsZenMode(true); setIsCommandOpen(false); }}>
-              <Maximize2 className="mr-2 h-4 w-4" /> Zen Mode
-            </CommandItem>
-          </CommandGroup>
-          <CommandGroup heading="Formatting">
-            <CommandItem onSelect={() => { insertMarkdown('bold'); setIsCommandOpen(false); }}>
-              <Bold className="mr-2 h-4 w-4" /> Bold
-            </CommandItem>
-            <CommandItem onSelect={() => { insertMarkdown('italic'); setIsCommandOpen(false); }}>
-              <Italic className="mr-2 h-4 w-4" /> Italic
-            </CommandItem>
-            <CommandItem onSelect={() => { insertMarkdown('code-block'); setIsCommandOpen(false); }}>
-              <Code className="mr-2 h-4 w-4" /> Code Block
-            </CommandItem>
-          </CommandGroup>
-          <CommandGroup heading="Theme">
-            <CommandItem onSelect={() => { toggleTheme(); setIsCommandOpen(false); }}>
-              {theme === 'dark' ? <Sun className="mr-2 h-4 w-4" /> : <Moon className="mr-2 h-4 w-4" />}
-              Switch to {theme === 'dark' ? 'Light' : 'Dark'} Mode
-            </CommandItem>
+          <CommandGroup heading="Workspace Layout">
+            <CommandItem onSelect={() => { setViewMode('editor'); setIsCommandOpen(false); }}><Square className="mr-3 h-4 w-4" /> Focus Mode (Editor)</CommandItem>
+            <CommandItem onSelect={() => { setViewMode('split'); setIsCommandOpen(false); }}><Columns className="mr-3 h-4 w-4" /> Collaborative View (Split)</CommandItem>
+            <CommandItem onSelect={() => { setViewMode('preview'); setIsCommandOpen(false); }}><Eye className="mr-3 h-4 w-4" /> Presentation Mode (Preview)</CommandItem>
           </CommandGroup>
         </CommandList>
       </CommandDialog>
 
       {/* Templates Dialog */}
       <Dialog open={isTemplatesOpen} onOpenChange={setIsTemplatesOpen}>
-        <DialogContent className="max-w-4xl">
-          <DialogHeader>
-            <DialogTitle>Resume Templates</DialogTitle>
-            <DialogDescription>
-              Choose a template to get started with your professional resume. Each template is uniquely structured.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-            {RESUME_TEMPLATES.map((template) => (
-              <div 
-                key={template.id} 
-                className="group border rounded-lg p-5 hover:border-primary cursor-pointer transition-all bg-card hover:shadow-md"
-                onClick={() => useTemplate(template)}
-              >
-                <div className="flex items-center justify-between mb-3">
-                  <h3 className="font-bold text-lg">{template.name}</h3>
-                  <Badge variant="secondary" className="text-[10px]">{template.id.toUpperCase()}</Badge>
-                </div>
-                <p className="text-sm text-muted-foreground mb-6 leading-relaxed">{template.description}</p>
-                <div className="flex justify-end">
-                  <Button variant="outline" size="sm" className="group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
-                    Apply Template
-                  </Button>
-                </div>
+        <DialogContent className="max-w-5xl rounded-3xl border-border/50 shadow-2xl overflow-hidden p-0">
+          <div className="grid md:grid-cols-[280px_1fr] h-[600px]">
+            <div className="bg-muted/30 p-8 border-r border-border/50">
+              <h2 className="text-2xl font-black tracking-tight mb-4">Template Library</h2>
+              <p className="text-sm text-muted-foreground leading-relaxed">Choose a pre-configured layout to start your professional document. All templates are fully customizable.</p>
+              <div className="mt-12 space-y-4">
+                <div className="flex items-center gap-3 text-xs font-black uppercase tracking-widest text-accent"><Layout className="w-4 h-4" /> Featured</div>
+                <div className="flex items-center gap-3 text-xs font-bold text-muted-foreground/60"><FileText className="w-4 h-4" /> Resumes</div>
+                <div className="flex items-center gap-3 text-xs font-bold text-muted-foreground/60"><TableIcon className="w-4 h-4" /> Reports</div>
               </div>
-            ))}
+            </div>
+            <ScrollArea className="p-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {RESUME_TEMPLATES.map((template) => (
+                  <div 
+                    key={template.id} 
+                    className="group border border-border/50 rounded-2xl p-6 hover:border-accent hover:shadow-xl hover:shadow-accent/5 cursor-pointer transition-all bg-card relative overflow-hidden"
+                    onClick={() => useTemplate(template)}
+                  >
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="font-extrabold text-lg group-hover:text-accent transition-colors">{template.name}</h3>
+                      <div className="w-8 h-8 rounded-full bg-accent/5 flex items-center justify-center group-hover:bg-accent transition-all">
+                        <ArrowUpRight className="w-4 h-4 group-hover:text-white transition-colors" />
+                      </div>
+                    </div>
+                    <p className="text-[13px] text-muted-foreground/80 mb-6 leading-relaxed line-clamp-3">{template.description}</p>
+                    <div className="flex flex-wrap gap-2">
+                      <Badge variant="secondary" className="text-[9px] font-black uppercase bg-muted/50 text-muted-foreground border-none">Professional</Badge>
+                      <Badge variant="secondary" className="text-[9px] font-black uppercase bg-muted/50 text-muted-foreground border-none">{template.id}</Badge>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </ScrollArea>
           </div>
         </DialogContent>
       </Dialog>
 
       {/* Settings Dialog */}
       <Dialog open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
-        <DialogContent>
+        <DialogContent className="rounded-3xl border-border/50 shadow-2xl p-8">
           <DialogHeader>
-            <DialogTitle>Settings</DialogTitle>
-            <DialogDescription>
-              Manage your preferences and editor configuration.
-            </DialogDescription>
+            <DialogTitle className="text-2xl font-black tracking-tight">Application Settings</DialogTitle>
+            <DialogDescription className="text-muted-foreground mt-2">Manage your writing environment and preferences.</DialogDescription>
           </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="flex items-center justify-between">
-              <div className="space-y-0.5">
-                <div className="text-sm font-medium">Theme</div>
-                <div className="text-xs text-muted-foreground">Switch between light and dark mode.</div>
+          <div className="space-y-8 py-6">
+            <div className="flex items-center justify-between bg-muted/20 p-4 rounded-2xl border border-border/50 transition-all hover:bg-muted/30">
+              <div className="space-y-1">
+                <div className="text-sm font-bold flex items-center gap-2">{theme === 'dark' ? <Moon className="w-4 h-4 text-accent" /> : <Sun className="w-4 h-4 text-accent" />} Appearance</div>
+                <div className="text-xs text-muted-foreground">Switch between light and high-contrast dark modes.</div>
               </div>
-              <Button variant="outline" size="sm" onClick={toggleTheme}>
-                {theme === 'dark' ? <Sun className="w-4 h-4 mr-2" /> : <Moon className="w-4 h-4 mr-2" />}
-                {theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
+              <Button variant="outline" size="sm" onClick={toggleTheme} className="rounded-xl border-border/50 font-bold text-xs h-9 px-4">
+                Set to {theme === 'dark' ? 'Light' : 'Dark'}
               </Button>
             </div>
-            <Separator />
-            <div className="flex items-center justify-between">
-              <div className="space-y-0.5">
-                <div className="text-sm font-medium">Zen Mode</div>
-                <div className="text-xs text-muted-foreground">Focus on your writing without distractions.</div>
+            
+            <div className="flex items-center justify-between bg-muted/20 p-4 rounded-2xl border border-border/50 transition-all hover:bg-muted/30">
+              <div className="space-y-1">
+                <div className="text-sm font-bold flex items-center gap-2"><Maximize2 className="w-4 h-4 text-accent" /> Zen Interface</div>
+                <div className="text-xs text-muted-foreground">Focus exclusively on the editor and preview.</div>
               </div>
-              <Button variant="outline" size="sm" onClick={() => { setIsZenMode(true); setIsSettingsOpen(false); }}>
-                Enable
+              <Button variant="outline" size="sm" onClick={() => { setIsZenMode(true); setIsSettingsOpen(false); }} className="rounded-xl border-border/50 font-bold text-xs h-9 px-4">
+                Enable Focus
               </Button>
             </div>
-            <Separator />
-            <div className="space-y-2">
-              <div className="text-sm font-medium">About FormaText</div>
-              <div className="text-xs text-muted-foreground leading-relaxed">
-                A clean, minimal, and high-fidelity editor for modern writers. Built with Next.js, Monaco, and Markdown-it.
-              </div>
+
+            <div className="p-6 rounded-2xl bg-accent/5 border border-accent/10">
+              <div className="flex items-center gap-2 text-sm font-black text-accent uppercase tracking-widest mb-3">About FormaText</div>
+              <p className="text-[13px] text-muted-foreground leading-relaxed">A high-fidelity structured writing platform built for precision and professional output. Powered by Monaco, Genkit AI, and Markdown-it.</p>
             </div>
           </div>
         </DialogContent>

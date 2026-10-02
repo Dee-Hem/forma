@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -5,252 +6,113 @@
 @layer base {
   :root {
     --background: 0 0% 100%;
-    --foreground: 222 47% 11%;
+    --foreground: 224 71.4% 4.1%;
     --card: 0 0% 100%;
-    --card-foreground: 222 47% 11%;
+    --card-foreground: 224 71.4% 4.1%;
     --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 11%;
-    --primary: 222 47% 11%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222 47% 11.2%;
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222 47% 11.2%;
+    --popover-foreground: 224 71.4% 4.1%;
+    --primary: 220.9 39.3% 11%;
+    --primary-foreground: 210 20% 98%;
+    --secondary: 220 14.3% 95.9%;
+    --secondary-foreground: 220.9 39.3% 11%;
+    --muted: 220 14.3% 95.9%;
+    --muted-foreground: 220 8.9% 46.1%;
+    --accent: 226 70% 55%; /* Modern Indigo Accent */
+    --accent-foreground: 210 20% 98%;
     --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 214.3 31.8 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222 47% 11%;
-    --radius: 0.5rem;
+    --destructive-foreground: 210 20% 98%;
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 224 71.4% 4.1%;
+    --radius: 0.75rem;
   }
 
   .dark {
-    --background: 222 47% 4%;
-    --foreground: 210 40% 98%;
-    --card: 222 47% 6%;
-    --card-foreground: 210 40% 98%;
-    --popover: 222 47% 8%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 210 40% 98%;
-    --primary-foreground: 222 47% 11%;
-    --secondary: 217.2 32.6% 12%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217.2 32.6% 12%;
+    --background: 222 47% 3%;
+    --foreground: 213 31% 91%;
+    --card: 222 47% 4%;
+    --card-foreground: 213 31% 91%;
+    --popover: 222 47% 5%;
+    --popover-foreground: 213 31% 91%;
+    --primary: 210 20% 98%;
+    --primary-foreground: 220.9 39.3% 11%;
+    --secondary: 215 27.9% 10.9%;
+    --secondary-foreground: 210 20% 98%;
+    --muted: 215 27.9% 12%;
     --muted-foreground: 215 20.2% 65.1%;
-    --accent: 217.2 32.6% 12%;
-    --accent-foreground: 210 40% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 217.2 32.6% 15%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
+    --accent: 226 70% 65%;
+    --accent-foreground: 210 20% 98%;
+    --border: 215 27.9% 16%;
+    --input: 215 27.9% 16%;
+    --ring: 216 12.2% 83.9%;
   }
 }
 
 @layer base {
   * { @apply border-border; }
   body { 
-    @apply bg-background text-foreground antialiased; 
+    @apply bg-background text-foreground antialiased selection:bg-accent/20 selection:text-accent; 
     font-feature-settings: "cv02", "cv03", "cv04", "cv11"; 
   }
 }
 
-/* Monaco Custom Fixes to avoid cursor offsets */
+/* Monaco Custom Fixes */
 .monaco-editor, .monaco-editor .inputarea.ime-input {
   font-family: 'Fira Code', monospace !important;
   font-feature-settings: normal !important;
   letter-spacing: normal !important;
 }
 
-/* Preview Styles */
+/* Professional Preview Styles */
 .preview-content {
-  line-height: 1.6;
+  line-height: 1.7;
+  font-size: 1.05rem;
 }
 
-.preview-content h1 { @apply text-3xl font-extrabold mb-6 mt-10 tracking-tight border-none; }
-.preview-content h2 { @apply text-2xl font-bold mb-4 mt-8 pb-2 border-b; }
-.preview-content h3 { @apply text-xl font-bold mb-3 mt-6; }
-.preview-content p { @apply mb-4 text-foreground/90; }
-.preview-content blockquote { @apply border-l-4 border-muted pl-6 italic my-6 text-muted-foreground; }
-.preview-content code { @apply bg-muted/50 px-1.5 py-0.5 rounded font-mono text-[0.9em]; }
-.preview-content pre { @apply bg-muted/30 p-4 rounded-lg my-6 overflow-x-auto border; }
-.preview-content ul { @apply list-disc ml-6 mb-4 space-y-2; }
-.preview-content ol { @apply list-decimal ml-6 mb-4 space-y-2; }
-.preview-content table { @apply w-full border-collapse mb-6; }
-.preview-content th, .preview-content td { @apply border p-2 text-sm; }
-.preview-content th { @apply bg-muted/50 font-bold; }
+.preview-content h1 { @apply text-4xl font-extrabold mb-8 mt-12 tracking-tight text-foreground border-none; }
+.preview-content h2 { @apply text-2xl font-bold mb-6 mt-10 pb-3 border-b border-border/50 text-foreground/90; }
+.preview-content h3 { @apply text-xl font-semibold mb-4 mt-8 text-foreground/80; }
+.preview-content p { @apply mb-6 text-foreground/85 leading-relaxed; }
+.preview-content blockquote { @apply border-l-4 border-accent/40 pl-6 italic my-8 text-muted-foreground bg-muted/20 py-1 pr-4 rounded-r-md; }
+.preview-content code { @apply bg-muted px-1.5 py-0.5 rounded font-mono text-[0.85em] text-accent; }
+.preview-content pre { @apply bg-muted/40 p-5 rounded-xl my-8 overflow-x-auto border border-border/50 shadow-inner; }
+.preview-content ul { @apply list-disc ml-6 mb-6 space-y-3; }
+.preview-content ol { @apply list-decimal ml-6 mb-6 space-y-3; }
 
-/* RESUME TEMPLATES */
+/* Enhanced Tables */
+.preview-content table { 
+  @apply w-full border-collapse my-8 rounded-lg overflow-hidden border border-border/50 shadow-sm; 
+}
+.preview-content th { 
+  @apply bg-muted/50 text-muted-foreground font-semibold text-[11px] uppercase tracking-wider p-4 text-left border-b border-border/50; 
+}
+.preview-content td { 
+  @apply p-4 text-sm border-b border-border/10 text-foreground/80; 
+}
+.preview-content tr:last-child td { @apply border-b-0; }
+.preview-content tr:hover td { @apply bg-muted/5 transition-colors; }
 
-/* Modern (Academic) */
-.resume-modern {
-  border-top: 12px solid #3b82f6;
-  padding-top: 2rem;
-}
-.resume-modern h1 {
-  @apply text-4xl font-black uppercase tracking-widest mb-4 mt-0 border-none;
-  text-align: left;
-}
-.resume-modern h2 {
-  @apply text-sm font-black uppercase tracking-[0.3em] text-blue-600 border-b border-blue-100 pb-2 mt-10 mb-6;
-}
-.resume-modern h3 {
-  @apply text-base font-bold mb-1 mt-6;
-}
-.resume-modern p, .resume-modern li {
-  @apply text-[14px] leading-relaxed mb-4;
-}
+/* Alerts / Callouts */
+.alert { @apply p-4 rounded-lg my-6 border-l-4 shadow-sm; }
+.alert-note { @apply bg-blue-50/50 dark:bg-blue-900/10 border-blue-500/50 text-blue-900 dark:text-blue-100; }
+.alert-tip { @apply bg-emerald-50/50 dark:bg-emerald-900/10 border-emerald-500/50 text-emerald-900 dark:text-emerald-100; }
+.alert-warning { @apply bg-amber-50/50 dark:bg-amber-900/10 border-amber-500/50 text-amber-900 dark:text-amber-100; }
+.alert-important { @apply bg-indigo-50/50 dark:bg-indigo-900/10 border-indigo-500/50 text-indigo-900 dark:text-indigo-100; }
 
-/* Classic Professional */
-.resume-classic {
-  text-align: center;
-}
-.resume-classic h1 {
-  @apply text-4xl font-bold uppercase tracking-[0.25em] mb-6 mt-0 border-none;
-  text-align: center;
-}
-.resume-classic h2 {
-  @apply text-[11px] font-bold uppercase tracking-[0.4em] border-y border-foreground/20 py-2.5 my-10;
-  text-align: center;
-}
-.resume-classic h3 {
-  @apply text-base font-bold mb-1.5 mt-8;
-  text-align: left;
-}
-.resume-classic p, .resume-classic li {
-  text-align: left;
-  @apply text-[14px] leading-relaxed mb-5;
-}
+.alert-title { @apply font-bold text-xs uppercase tracking-widest mb-2 flex items-center gap-2; }
 
-/* Minimalist Tech */
-.resume-minimal {
-  @apply max-w-2xl mx-auto;
-}
-.resume-minimal h1 {
-  @apply text-3xl font-bold mb-2 mt-0 tracking-tighter border-none;
-}
-.resume-minimal h2 {
-  @apply text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground border-none pb-0 mt-8 mb-3;
-}
-.resume-minimal h3 {
-  @apply text-[15px] font-bold mb-0.5 mt-5;
-}
-.resume-minimal p, .resume-minimal li {
-  @apply text-[13px] leading-snug mb-2;
-}
-.resume-minimal code {
-  @apply bg-secondary/50 text-secondary-foreground px-1 py-0.5 rounded font-mono text-[11px];
-}
+/* RESUME TEMPLATES - REFINED */
+.resume-modern { border-top: 8px solid hsl(var(--accent)); @apply pt-8; }
+.resume-modern h2 { @apply text-xs font-black uppercase tracking-[0.3em] text-accent border-b border-accent/10 pb-3 mt-12 mb-6; }
 
-/* Executive Portfolio */
-.resume-executive {
-  border-left: 10px solid #1e293b;
-  padding-left: 3rem;
-}
-.resume-executive h1 {
-  @apply text-4xl font-bold mb-2 mt-0 tracking-tight border-none text-slate-800 dark:text-slate-200;
-}
-.resume-executive h2 {
-  @apply text-base font-bold border-b-2 border-slate-300 pb-2 mt-12 mb-6 uppercase tracking-widest text-slate-700 dark:text-slate-300;
-}
-.resume-executive h3 {
-  @apply text-[15px] font-bold mb-1.5 mt-6 text-slate-600 dark:text-slate-400;
-}
-.resume-executive p, .resume-executive li {
-  @apply text-[14px] leading-normal mb-5;
-}
-.resume-executive table {
-  @apply border-none shadow-none rounded-none overflow-hidden my-8;
-}
-.resume-executive th {
-  @apply bg-slate-800 text-white font-bold uppercase text-[10px] tracking-widest p-4 text-left border-none;
-}
-.resume-executive td {
-  @apply p-4 border-b border-slate-100 text-[13px];
-}
+.resume-classic h1 { @apply text-4xl font-bold uppercase tracking-[0.2em] mb-8 text-foreground; }
+.resume-classic h2 { @apply text-[10px] font-bold uppercase tracking-[0.5em] border-y border-border py-3 my-12; }
 
-/* PRINT OVERRIDES - FIXED PAGINATION AND UI HIDING */
+/* PRINT OVERRIDES */
 @media print {
-  @page {
-    margin: 0.75in;
-    size: letter;
-  }
-  
-  html, body {
-    height: auto !important;
-    min-height: 0 !important;
-    overflow: visible !important;
-    background: white !important;
-    color: black !important;
-    margin: 0 !important;
-    padding: 0 !important;
-  }
-
-  /* Flatten all layout containers first */
-  div.h-screen, 
-  main, 
-  [data-panel-group],
-  [data-panel],
-  .preview-container,
-  .preview-container > div,
-  [data-radix-scroll-area-viewport] {
-    display: block !important;
-    height: auto !important;
-    width: 100% !important;
-    position: static !important;
-    overflow: visible !important;
-    border: none !important;
-    box-shadow: none !important;
-    margin: 0 !important;
-    padding: 0 !important;
-  }
-
-  /* CRITICAL: Strict UI hiding that wins the cascade */
-  .no-print, 
-  .sidebar-panel-wrapper,
-  .editor-panel-wrapper,
-  .panel-resize-handle,
-  header, 
-  footer, 
-  [role="tablist"],
-  [data-sidebar],
-  button,
-  .toaster,
-  .dropdown-menu {
-    display: none !important;
-    visibility: hidden !important;
-    height: 0 !important;
-    width: 0 !important;
-    opacity: 0 !important;
-    pointer-events: none !important;
-  }
-
-  .preview-content {
-    display: block !important;
-    width: 100% !important;
-    max-width: none !important;
-    padding: 0 !important;
-    margin: 0 !important;
-    font-size: 11pt !important;
-    color: black !important;
-    background: transparent !important;
-    overflow: visible !important;
-  }
-
-  h1, h2, h3 {
-    page-break-after: avoid;
-    page-break-inside: avoid;
-    color: black !important;
-  }
-
-  table, tr, img, blockquote {
-    page-break-inside: avoid;
-  }
-  
-  a {
-    text-decoration: none !important;
-    color: black !important;
-  }
+  @page { margin: 0.75in; size: letter; }
+  .no-print { display: none !important; }
+  body { background: white !important; color: black !important; }
+  .preview-content { font-size: 11pt !important; color: black !important; width: 100% !important; padding: 0 !important; }
+  pre, code { background: #f5f5f5 !important; border: 1px solid #ddd !important; }
 }
