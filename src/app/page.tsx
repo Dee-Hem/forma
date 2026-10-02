@@ -164,7 +164,6 @@ export default function FormaTextApp() {
 
   const activeDoc = documents.find(d => d.id === activeDocId);
 
-  // Hydration fix for time
   useEffect(() => {
     setIsMounted(true);
     setCurrentTime(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
@@ -349,8 +348,8 @@ export default function FormaTextApp() {
 
   const filteredTemplates = RESUME_TEMPLATES.filter(t => {
     if (templateCategory === 'featured') return true;
-    if (templateCategory === 'resumes') return t.id !== 'executive'; // Logic placeholder
-    if (templateCategory === 'reports') return t.id === 'executive'; // Logic placeholder
+    if (templateCategory === 'resumes') return t.category === 'resume';
+    if (templateCategory === 'reports') return t.category === 'report';
     return true;
   });
 
@@ -767,7 +766,7 @@ export default function FormaTextApp() {
                     <p className="text-[13px] text-muted-foreground/80 mb-6 leading-relaxed line-clamp-3">{template.description}</p>
                     <div className="flex flex-wrap gap-2">
                       <Badge variant="secondary" className="text-[9px] font-black uppercase bg-muted/50 text-muted-foreground border-none">Professional</Badge>
-                      <Badge variant="secondary" className="text-[9px] font-black uppercase bg-muted/50 text-muted-foreground border-none">{template.id}</Badge>
+                      <Badge variant="secondary" className="text-[9px] font-black uppercase bg-muted/50 text-muted-foreground border-none">{template.category}</Badge>
                     </div>
                   </div>
                 ))}

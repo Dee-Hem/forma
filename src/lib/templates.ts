@@ -4,12 +4,14 @@ export interface ResumeTemplate {
   name: string;
   description: string;
   content: string;
+  category: 'resume' | 'report';
 }
 
 export const RESUME_TEMPLATES: ResumeTemplate[] = [
   {
     id: 'modern',
     name: 'Modern (Academic)',
+    category: 'resume',
     description: 'Clean, professional layout perfect for researchers, professors, and PhD candidates.',
     content: `# DR. ELARA VANCE
 *Lead Researcher | Computational Linguistics*
@@ -58,6 +60,7 @@ export const RESUME_TEMPLATES: ResumeTemplate[] = [
   {
     id: 'classic',
     name: 'Classic Professional',
+    category: 'resume',
     description: 'A traditional, results-driven layout for corporate executives and senior management.',
     content: `# MARCUS J. THORNE
 **Senior Vice President of Operations**
@@ -95,6 +98,7 @@ Visionary Operations Executive with over 20 years of experience leading multi-na
   {
     id: 'minimal',
     name: 'Minimalist Tech',
+    category: 'resume',
     description: 'A clean, high-density layout optimized for developers, designers, and tech professionals.',
     content: `# ALEX RIVERA
 **Senior Full-Stack Engineer**
@@ -125,6 +129,7 @@ Visionary Operations Executive with over 20 years of experience leading multi-na
   {
     id: 'executive',
     name: 'Executive Portfolio',
+    category: 'resume',
     description: 'A high-impact, visual hierarchy design for directors, consultants, and project leads.',
     content: `# SARAH T. CONNOR
 ## Project Management Director | PMP® | Certified Scrum Master®
@@ -155,6 +160,121 @@ Strategic Project Director with 15+ years of success in delivering complex, mult
 
 - **B.A. in Management & Technology** | Yale University
 - **PMP® Certification** | Project Management Institute
+`
+  },
+  {
+    id: 'tech-spec',
+    name: 'Technical Specification',
+    category: 'report',
+    description: 'A robust framework for documenting system architecture and technical requirements.',
+    content: `# Technical Specification: Project Phoenix
+**Version:** 1.0.0
+**Author:** Engineering Team
+**Date:** March 2024
+
+---
+
+## 1. Executive Summary
+This document outlines the architectural design and implementation plan for Project Phoenix, a high-throughput data processing engine.
+
+## 2. Architecture Overview
+The system follows a microservices architecture leveraging event-driven communication via Apache Kafka.
+
+### 2.1 High-Level Diagram
+*   **Ingestion Layer:** REST API endpoints and Webhook listeners.
+*   **Processing Layer:** Distributed worker nodes built with Rust.
+*   **Storage Layer:** PostgreSQL for relational data and S3 for long-term blobs.
+
+## 3. Requirements
+
+### 3.1 Functional Requirements
+- [x] Real-time event ingestion (10k events/sec).
+- [x] Persistence of processed results with ACID compliance.
+- [ ] Automated recovery from node failures.
+
+### 3.2 Non-Functional Requirements
+- **Latency:** < 200ms for 95th percentile.
+- **Availability:** 99.99% uptime.
+
+## 4. API Endpoints
+
+| Method | Endpoint | Description |
+| :--- | :--- | :--- |
+| POST | \`/v1/events\` | Ingest new data events |
+| GET | \`/v1/status\` | Retrieve system health metrics |
+
+## 5. Timeline
+- **Phase 1 (Sprint 1-4):** Core ingestion pipeline.
+- **Phase 2 (Sprint 5-8):** Processing logic and storage integration.
+`
+  },
+  {
+    id: 'market-analysis',
+    name: 'Market Analysis Report',
+    category: 'report',
+    description: 'Professional layout for market research, trend analysis, and strategic findings.',
+    content: `# Market Analysis: Global SaaS Trends 2024
+**Prepared by:** Strategic Insights Group
+**Focus:** Vertical AI and Low-Code Platforms
+
+---
+
+## 1. Market Overview
+The global SaaS market is projected to reach $350B by 2026, driven largely by the integration of Generative AI into existing workflows.
+
+## 2. Key Findings
+- **Vertical AI:** 65% of enterprise buyers prefer niche solutions over horizontal platforms.
+- **Consolidation:** M&A activity in the fintech space has increased by 15% YoY.
+
+## 3. Competitor Analysis
+
+### 3.1 Market Leaders
+*   **Player A:** Dominates the Enterprise Resource Planning segment.
+*   **Player B:** Leading innovation in collaborative workspaces.
+
+## 4. SWOT Analysis
+
+| Strengths | Weaknesses |
+| :--- | :--- |
+| High recurring revenue | Fragmented data silos |
+| Strong network effects | High customer acquisition costs |
+
+## 5. Recommendations
+1. Focus on deep integrations with established CRM systems.
+2. Invest in proprietary datasets for specialized model training.
+`
+  },
+  {
+    id: 'project-status',
+    name: 'Project Status Update',
+    category: 'report',
+    description: 'Concise, high-impact status reporting for stakeholders and project leads.',
+    content: `# Project Status Report
+**Project Name:** Q2 Infrastructure Upgrade
+**Status:** 🟡 On Track (with minor risks)
+**Reporting Period:** March 1 - March 15
+
+---
+
+## 1. Executive Summary
+The primary migration of the database cluster is 80% complete. We are currently navigating a minor delay in network provisioning.
+
+## 2. Milestone Progress
+
+| Milestone | Status | Target Date |
+| :--- | :--- | :--- |
+| Database Migration | ✅ Complete | Mar 10 |
+| Network Config | 🚧 In Progress | Mar 18 |
+| Final QA | ⏳ Pending | Mar 25 |
+
+## 3. Top Risks
+*   **R1:** Latency spikes during switchover (Probability: Med, Impact: High).
+*   **R2:** Third-party API rate limiting (Probability: Low, Impact: Med).
+
+## 4. Next Steps
+1. Finalize network subnetting configuration.
+2. Initiate failover testing in the staging environment.
+3. Prepare stakeholder briefing for final sign-off.
 `
   }
 ];
