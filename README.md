@@ -19,7 +19,7 @@ It is designed to provide a simple writing environment while still offering usef
 
 Try FormaText in your browser:
 
-**https://forma-psi-swart.vercel.app/**
+**https://formatext.vercel.app/**
 
 ## 📸 Preview
 
